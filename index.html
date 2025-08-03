@@ -17,7 +17,7 @@
             --font-color-dark: #323232;
             --gold-color: #f7b733;
             --pointer-red: #d92027;
-            --tile-border-color: #7D9D9C; /* Új szín a jobb láthatóságért */
+            --tile-border-color: #7D9D9C;
         }
 
         body {
@@ -123,6 +123,10 @@
             font-weight: 700;
             text-transform: uppercase;
             text-align: center;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         #puzzle-board {
@@ -166,14 +170,12 @@
             border-radius: 5px;
             box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
         }
-
-        /* JAVÍTOTT, JOBBAN LÁTHATÓ CSEMPÉK */
+        
         .tile-front {
             background-color: var(--tile-green);
             border: 2px solid var(--tile-border-color);
             box-shadow: inset 0 0 5px rgba(0,0,0,0.5), 0 0 4px rgba(125, 157, 156, 0.4);
         }
-
         .tile-back {
             background-color: var(--font-color-light);
             color: var(--font-color-dark);
@@ -382,102 +384,34 @@
         #solve-button { background-color: var(--gold-color); color: var(--font-color-dark); }
         #new-game-button { background-color: #607d8b; color: white; margin-top: 10px; width: 100%; max-width: 310px;}
         
-        #rules-container {
-            background-color: var(--bg-wood);
-            color: var(--font-color-light);
-            padding: 20px;
-            margin-top: 20px;
-            width: 100%;
-            max-width: 1400px;
-            border-radius: 15px;
-            border: 5px solid var(--bg-dark-wood);
-            box-shadow: 0 0 15px rgba(0,0,0,0.5);
-        }
-        #rules-container h2 { font-family: 'Shrikhand', cursive; color: var(--gold-color); text-align: center; margin-top: 0; text-shadow: 2px 2px 2px #000; }
-        #rules-container ul { list-style-type: none; padding: 0; }
-        #rules-container li { margin-bottom: 10px; padding-left: 25px; position: relative; }
-        #rules-container li::before { content: '👉'; color: var(--gold-color); position: absolute; left: 0; }
-        #rules-container strong { color: var(--gold-color); font-weight: 700; }
-
-        /* Custom Modal Styles */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.7);
-            display: flex;
+        #wait-screen {
+            display: none;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
-        .modal-overlay.visible {
-            opacity: 1;
-            visibility: visible;
-        }
-        .modal-content {
-            background-color: var(--bg-wood);
-            padding: 30px;
-            border-radius: 15px;
-            border: 5px solid var(--bg-dark-wood);
-            box-shadow: 0 5px 25px rgba(0,0,0,0.7);
+            width: 100%;
+            height: 100%;
+            min-height: 250px;
+            background-color: rgba(0,0,0,0.3);
+            border: 2px dashed var(--gold-color);
+            border-radius: 10px;
+            padding: 20px;
+            box-sizing: border-box;
             text-align: center;
             color: var(--font-color-light);
-            width: 90%;
-            max-width: 500px;
-            transform: scale(0.9);
-            transition: transform 0.3s ease;
         }
-        .modal-overlay.visible .modal-content {
-            transform: scale(1);
+        #wait-message {
+            font-size: 1.2rem;
+            font-style: italic;
+            margin-bottom: 25px;
         }
-        .modal-content h3 {
-            font-family: 'Shrikhand', cursive;
+        #next-puzzle-time {
+            font-size: 1.5rem;
+            font-weight: bold;
             color: var(--gold-color);
-            margin-top: 0;
-            font-size: 2rem;
             text-shadow: 2px 2px 2px #000;
         }
-        .modal-content p {
-            font-size: 1.1rem;
-            margin-bottom: 20px;
-        }
-        #solve-input {
-            width: 100%;
-            padding: 10px;
-            font-size: 1.2rem;
-            border-radius: 5px;
-            border: 2px solid var(--gold-color);
-            background: var(--font-color-light);
-            color: var(--font-color-dark);
-            box-sizing: border-box;
-            margin-bottom: 20px;
-            text-transform: uppercase;
-        }
-        .modal-buttons {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-        }
-        .modal-btn {
-             padding: 12px 25px;
-            font-family: 'Roboto Slab', serif;
-            font-weight: 700;
-            font-size: 1rem;
-            border-radius: 8px;
-            border: 1px solid var(--bg-dark-wood);
-            border-bottom: 4px solid var(--bg-dark-wood);
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
-            cursor: pointer;
-            transition: all 0.1s ease;
-            text-transform: uppercase;
-        }
-        #modal-confirm-btn { background-color: var(--gold-color); color: var(--font-color-dark); }
-        #modal-cancel-btn { background-color: #607d8b; color: white; }
+
 
         @media (max-width: 900px) {
             body { height: auto; }
@@ -497,68 +431,14 @@
                     <style>
                         @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&family=Bevan&display=swap');
                     </style>
-                    <linearGradient id="chromeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" style="stop-color:#d0d0d0; stop-opacity:1" />
-                        <stop offset="30%" style="stop-color:#f0f0f0; stop-opacity:1" />
-                        <stop offset="50%" style="stop-color:#a0a0a0; stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#707070; stop-opacity:1" />
-                    </linearGradient>
-                    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" style="stop-color:#fff2a8; stop-opacity:1" />
-                        <stop offset="50%" style="stop-color:#f7b733; stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#e69a00; stop-opacity:1" />
-                    </linearGradient>
-                    <filter id="glow">
-                        <feGaussianBlur stdDeviation="3.5" result="coloredBlur"/>
-                        <feMerge>
-                            <feMergeNode in="coloredBlur"/>
-                            <feMergeNode in="SourceGraphic"/>
-                        </feMerge>
-                    </filter>
+                    <linearGradient id="chromeGradient" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#d0d0d0; stop-opacity:1" /><stop offset="30%" style="stop-color:#f0f0f0; stop-opacity:1" /><stop offset="50%" style="stop-color:#a0a0a0; stop-opacity:1" /><stop offset="100%" style="stop-color:#707070; stop-opacity:1" /></linearGradient>
+                    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#fff2a8; stop-opacity:1" /><stop offset="50%" style="stop-color:#f7b733; stop-opacity:1" /><stop offset="100%" style="stop-color:#e69a00; stop-opacity:1" /></linearGradient>
+                    <filter id="glow"><feGaussianBlur stdDeviation="3.5" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
                 </defs>
-                
-                <text x="250" y="70" 
-                      font-family="'Great Vibes', cursive" 
-                      font-size="65" 
-                      fill="url(#goldGradient)" 
-                      text-anchor="middle"
-                      stroke="#412A18"
-                      stroke-width="1"
-                      filter="url(#glow)">
-                    Békebeli
-                </text>
-            
-                <text x="250" y="120" 
-                      font-family="'Bevan', cursive" 
-                      font-size="42" 
-                      fill="#1E1E1E" 
-                      text-anchor="middle"
-                      transform="translate(4, 4)"
-                      opacity="0.6"
-                      letter-spacing="2">
-                    SZERENCSEKERÉK
-                </text>
-
-                <text x="250" y="120" 
-                      font-family="'Bevan', cursive" 
-                      font-size="42" 
-                      fill="url(#chromeGradient)" 
-                      stroke="#222" 
-                      stroke-width="1.5"
-                      text-anchor="middle"
-                      letter-spacing="2">
-                    SZERENCSEKERÉK
-                </text>
-                <text x="250" y="120" 
-                      font-family="'Bevan', cursive" 
-                      font-size="42" 
-                      fill="white" 
-                      opacity="0.4"
-                      text-anchor="middle"
-                      letter-spacing="2"
-                      clip-path="polygon(0 0, 100% 0, 100% 45%, 0 45%)">
-                    SZERENCSEKERÉK
-                </text>
+                <text x="250" y="70" font-family="'Great Vibes', cursive" font-size="65" fill="url(#goldGradient)" text-anchor="middle" stroke="#412A18" stroke-width="1" filter="url(#glow)">Békebeli</text>
+                <text x="250" y="120" font-family="'Bevan', cursive" font-size="42" fill="#1E1E1E" text-anchor="middle" transform="translate(4, 4)" opacity="0.6" letter-spacing="2">SZERENCSEKERÉK</text>
+                <text x="250" y="120" font-family="'Bevan', cursive" font-size="42" fill="url(#chromeGradient)" stroke="#222" stroke-width="1.5" text-anchor="middle" letter-spacing="2">SZERENCSEKERÉK</text>
+                <text x="250" y="120" font-family="'Bevan', cursive" font-size="42" fill="white" opacity="0.4" text-anchor="middle" letter-spacing="2" clip-path="polygon(0 0, 100% 0, 100% 45%, 0 45%)">SZERENCSEKERÉK</text>
             </svg>
         </div>
     </header>
@@ -567,7 +447,13 @@
             <div id="game-area">
                 <section id="puzzle-section">
                     <div id="puzzle-category"></div>
-                    <div id="puzzle-board"></div>
+                    <div id="puzzle-area-container" style="width:100%;">
+                        <div id="puzzle-board"></div>
+                        <div id="wait-screen">
+                            <div id="wait-message"></div>
+                            <div id="next-puzzle-time"></div>
+                        </div>
+                    </div>
                     <div id="alphabet-panel"></div>
                 </section>
                 <section id="game-controls-section">
@@ -595,630 +481,257 @@
             </div>
         </div>
     </div>
-
-    <div id="rules-container">
-        <h2>Játékszabályzat</h2>
-        <ul>
-            <li><strong>A Játék Célja:</strong> A játék 3 fordulóból áll. Fejtsd meg a feladványokat és gyűjts minél több pontot! A pontjaidat a fordulók között megőrzöd.</li>
-            <li><strong>Pörgetés:</strong> Használd a "Pörgetés Erőssége" mérőt! Kattints a "Pörgetés" gombra az indításhoz, majd még egyszer a kívánt erősségnél. A kerék értékei minden fordulóban magasabbak!</li>
-            <li><strong>Betűk Választása:</strong> A feladvány alatt található panelen választhatsz betűket.
-                <ul>
-                    <li><strong>Mássalhangzó:</strong> Sikeres pörgetés után kattints egy mássalhangzóra. Minden találatért megkapod a kipörgetett pontszámot.</li>
-                    <li><strong>Magánhangzó:</strong> Ha te jössz, és van legalább 250 pontod, bármikor vásárolhatsz magánhangzót a kékkel jelölt gombokkal.</li>
-                </ul>
-            </li>
-            <li><strong>A Megfejtés:</strong> Bármikor, amikor te következel, a "Megfejtem" gombbal megpróbálhatod beírni a megoldást. Ha helyes, a forduló véget ér, és a tábla felfedi a teljes megfejtést!</li>
-            <li><strong>Különleges Mezők:</strong>
-                <ul>
-                    <li><strong>CSŐD:</strong> Ha ezt pörgeted, a fordulóban szerzett pontjaid nullázódnak!</li>
-                    <li><strong>KIMARADSZ:</strong> Nem veszítesz pontot, de a köröd véget ér.</li>
-                    <li><strong>INGYEN MAGÁNHANGZÓ:</strong> Kapsz egy ingyenes lehetőséget, amit bármikor felhasználhatsz egy magánhangzó felfedésére.</li>
-                    <li><strong>SÚGÁS:</strong> A műsorvezető segít egy tippel a feladványhoz.</li>
-                    <li><strong>EXPRESSZ:</strong> Kapsz 1000 pontot minden helyes mássalhangzóért, és addig tippelhetsz újakat pörgetés nélkül, amíg el nem hibázod.</li>
-                    <li><strong>DUPLA VAGY SEMMI:</strong> Felfordítasz egy érmét, amivel megduplázhatod vagy elveszítheted a fordulóban addig gyűjtött összes pontodat.</li>
-                </ul>
-            </li>
-        </ul>
-    </div>
-
-    <div id="custom-modal" class="modal-overlay">
-        <div class="modal-content">
-            <h3 id="modal-title">Megfejtés</h3>
-            <p id="modal-text">Kérem a teljes megfejtést:</p>
-            <input type="text" id="solve-input" autocomplete="off">
-            <div class="modal-buttons">
-                <button id="modal-confirm-btn" class="modal-btn">Rendben</button>
-                <button id="modal-cancel-btn" class="modal-btn">Mégse</button>
-            </div>
-        </div>
-    </div>
-
-
-    <audio id="spin-sound" src="placeholder_spin.mp3" preload="auto"></audio>
-    <audio id="correct-sound" src="placeholder_correct.mp3" preload="auto"></audio>
-    <audio id="bankrupt-sound" src="placeholder_bankrupt.mp3" preload="auto"></audio>
-    <audio id="win-sound" src="placeholder_win.mp3" preload="auto"></audio>
-
+    
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const puzzles = [
-                { category: "Közmondás", puzzle: "ADDIG JÁR A KORSÓ A KÚTRA", hint: "Vigyázz, mert egyszer pórul jársz..." },
-                { category: "Film & Rendező", puzzle: "QUENTIN TARANTINO PULP FICTION", hint: "Egy kultikus film a 90-es évekből, nem lineáris idősíkkal." },
-                { category: "Étel & Ital", puzzle: "BRASSÓI APRÓPECSENYE", hint: "Hagyományos magyar étel, fokhagymás hús és sült burgonya." },
-                { category: "Híres Ember", puzzle: "PUSKÁS FERENC", hint: "Az Aranycsapat legendás kapitánya, akit a világ minden táján ismernek." },
-                { category: "Földrajz", puzzle: "A PISAI FERDE TORONY", hint: "Olaszország egyik leghíresebb, ámde instabil építménye." },
-                { category: "Sláger", puzzle: "NEOTON FAMÍLIA DON QUIJOTE", hint: "Spanyol hódítóról szóló, fülbemászó magyar diszkósláger." }
-            ];
-            let usedPuzzleIndices = [];
+    document.addEventListener('DOMContentLoaded', () => {
 
-            const wheelSegmentsR1 = [
-                { label: '300', value: 300, color: '#4caf50' }, { label: 'CSŐD', value: 'bankrupt', color: '#212121' },
-                { label: '500', value: 500, color: '#f44336' }, { label: 'SÚGÁS', value: 'hint', color: '#9c27b0' },
-                { label: 'KIMARADSZ', value: 'lose_turn', color: '#607d8b' }, { label: '400', value: 400, color: '#ff9800' },
-                { label: '600', value: 600, color: '#3f51b5' }, { label: 'CSŐD', value: 'bankrupt', color: '#212121' },
-                { label: '700', value: 700, color: '#e91e63' }, { label: '350', value: 350, color: '#00bcd4' },
-                { label: '550', value: 550, color: '#8bc34a' }, { label: '1000', value: 1000, color: '#ffc107' }
-            ];
-            const wheelSegmentsR2 = [
-                { label: '600', value: 600, color: '#4caf50' }, { label: 'CSŐD', value: 'bankrupt', color: '#212121' },
-                { label: '800', value: 800, color: '#f44336' }, { label: 'INGYEN MGH', value: 'free_vowel', color: '#9c27b0' },
-                { label: 'KIMARADSZ', value: 'lose_turn', color: '#607d8b' }, { label: '700', value: 700, color: '#ff9800' },
-                { label: '+5000', value: 5000, color: '#3f51b5' }, { label: 'CSŐD', value: 'bankrupt', color: '#212121' },
-                { label: '900', value: 900, color: '#e91e63' }, { label: '500', value: 500, color: '#00bcd4' },
-                { label: '1200', value: 1200, color: '#8bc34a' }, { label: '2000', value: 2000, color: '#ffc107' }
-            ];
-            const wheelSegmentsR3 = [
-                { label: '1000', value: 1000, color: '#4caf50' }, { label: 'CSŐD', value: 'bankrupt', color: '#212121' },
-                { label: '1500', value: 1500, color: '#f44336' }, { label: 'DUPLA/SEMMI', value: 'double_or_nothing', color: '#9c27b0' },
-                { label: 'KIMARADSZ', value: 'lose_turn', color: '#607d8b' }, { label: '2000', value: 2000, color: '#ff9800' },
-                { label: 'EXPRESSZ', value: 'express', color: '#d92027' }, { label: 'CSŐD', value: 'bankrupt', color: '#212121' },
-                { label: '1200', value: 1200, color: '#e91e63' }, { label: '750', value: 750, color: '#00bcd4' },
-                { label: '3000', value: 3000, color: '#8bc34a' }, { label: '5000', value: 5000, color: '#cddc39' }
-            ];
-            const wheelSegmentSets = [wheelSegmentsR1, wheelSegmentsR2, wheelSegmentsR3];
-            
-            const VOWELS = "AÁEÉIÍOÓÖŐUÚÜŰ";
-            const FULL_ALPHABET = "AÁBCDEÉFGHIÍJKLMNOÓÖŐPQRSTUÚÜŰVXYZ";
-            const VOWEL_COST = 250;
+        const GITHUB_PUZZLE_URL = 'https://raw.githubusercontent.com/felhasznalo/repo/main/feladvanyok.js'; 
 
-            const HOST_MESSAGES = {
-                start_game: ["Hölgyeim és Uraim, kezdődjön a játék! Lássuk az első feladványt!", "A stúdió fényei kigyúltak, a kerék készen áll! Sok szerencsét!", "A hajszárítók zúgnak, a tupírok tartanak, a Szerencsekerék pedig forogni készül! Induljon a menet!", "Szervusz, kedves játékos! A mai főnyeremény egy Trabant tele... reménnyel! Vágjunk is bele!", "Bekapcsoltuk a Videoton tévét, beállítottuk az adást, kezdődjön a szerencsevadászat!", "A stúdióban Fabulon-illat és izgalom terjeng. Vágjunk is bele!"],
-                start_round: ["Jöhet a(z) <strong>{round}. forduló</strong>! A tétek emelkednek!", "Új forduló, új remények! Lássuk a következő feladványt!", "Új kör, új feladvány! A pontszámok, mint a dollár-forint árfolyam, az egekben!", "Lássuk a következő felvonást! Remélem, hozott magával egy kabalát!", "Újabb kör, mint a bakelitlemezen. Lássuk, mit rejt a barázda!", "A tét nő, a feszültség fokozódik! Jöhet a <strong>{round}. forduló</strong>!"],
-                power_up: ["Induljon a pörgetés! Állítsa be az erősséget!", "Na lássuk, mekkorát lendít rajta!", "Mutassa meg, mekkora erő lakozik a csuklójában!", "Lendületet kérek! Pörgessünk, mintha nem lenne holnap!", "Adjon neki kakaót, ahogy a könyvben meg van írva!", "Lendítse meg, mint a Linda a rosszfiúkat!"],
-                spinning: ["A kerék forog, a kassza csörög!", "Lássuk, hol áll meg a szerencse!", "Nagy pörgetés, nagy remények!", "Forog a kerék, remeg a stúdió! Hol áll meg a csoda?", "Pörög, mint a Skála-kópé reklámja!", "A mutató keresi a helyét, mint turista a Balatonon.", "Forog a kerék, szól a Zoltán Erika!"],
-                spin_result: ["A pörgetés értéke <strong>{value} pont</strong>. Most jöhet egy mássalhangzó!", "<strong>{value} pont</strong> a tét! Melyik betűre gondol?", "A kerék <strong>{value}</strong> forintot... azaz pontot mutat! Mondjon egy mássalhangzót, de ne a 'Dz'-t!", "Ez egy szép summa: <strong>{value}</strong> pont! Egy betűt kérek, de gyorsan, mielőtt a rendező kávészünetet rendel el!", "Remek, <strong>{value}</strong> pont! Ezért már egy Trapper farmert is adnának! Melyik betű lesz az?", "Ez <strong>{value}</strong> pont! Ebből már kijön egy jó lángos a Római-parton! Halljuk a tippet!"],
-                bankrupt: ["Jaj, ne! <strong>CSŐD!</strong> A fordulós kassza most sírva fakad, a pontok elúsznak!", "Ez a legrosszabb mező! A csőd mindent vitt ebben a körben!", "Leégett a biztosíték! A <strong>CSŐD</strong> mindent vitt, de a jókedvünket nem viheti!", "Ó, a frász! Ez a fekete mező! A pontok elszálltak, mint a novemberi köd!", "Jaj, a nagy fekete semmi! A pontok mentek a levesbe, mint a nokedli!", "Mint a rosszul felvett kazetta, a fordulós pontoknak annyi! Sajnálom!"],
-                lose_turn: ["<strong>KIMARADSZ!</strong> Egy pillanatnyi pihenő, de a következő körben újra próbálkozhat!", "Most sajnos át kell adnia a lehetőséget.", "Hoppá, egy kis pihenő! Most a többiek jönnek, de ne csüggedjen!", "A szerencse most mással van. Egy kör és újra önnél a labda!", "Most jön egy reklámblokk, amíg ön pihen! Kitartás!", "Átadja a stafétát, mint a Vitray a Híradóban! Hamarosan visszatérünk!"],
-                hint: ["Látom, elakadt. Súgok egy kicsit: <strong>{hint}</strong>. Most újra pörgethet!", "Egy kis segítség a háztól: <strong>{hint}</strong>. Folytassa!"],
-                free_vowel: ["Fantasztikus! Nyert egy <strong>INGYEN MAGÁNHANGZÓT</strong>! Ezt később is felhasználhatja.", "A kerék kegyes volt, egy ingyen magánhangzó a jutalma!", "Ez ajándék, fogadja szeretettel! Egy <strong>INGYEN MAGÁNHANGZÓ</strong>!"],
-                bonus_points: ["<strong>+{value} PONT!</strong> Ez egy szép kis bónusz! Gratulálok!", "Azonnali <strong>{value} pont</strong>! Ezzel nagyot lépett előre!", "Hoppá! A kassza <strong>{value}</strong> ponttal lett nehezebb! Csak így tovább!"],
-                express: ["<strong>EXPRESSZ!</strong> Fantasztikus! Minden helyes mássalhangzó 1000 pont, és addig jöhet, amíg nem hibázik!", "Felszállt az Expresszre! Most nincs megállás!", "Vigyázat, az ajtók záródnak! Az <strong>EXPRESSZ</strong> elindult! Sok sikert!"],
-                double_or_nothing_prompt: ["<strong>DUPLA VAGY SEMMI!</strong> Kockáztatja a körben szerzett <strong>{points} pontot</strong>?"],
-                double_win: ["<strong>DUPLA!</strong> Bejött a kockázat, megduplázta a körös pontjait!", "Bátor döntés volt, és megérte! Aki mer, az nyer!"],
-                double_lose: ["<strong>SEMMI!</strong> A szerencse most elpártolt, a körös pontok elúsztak.", "Aki mer, az néha veszít. Sajnálom, ez most nem jött be."],
-                correct_consonant: ["Zseniális! Van <strong>{count}</strong> darab, ez <strong>{earnings} pontot</strong> ér! Ismét ön jön!", "Eltalálta! <strong>{count}</strong> betű, <strong>{earnings} pont</strong>! Folytassa!", "Ott van, ni! <strong>{count}</strong> darab, mint a jó csoki a KGST-piacon! Ez <strong>{earnings} pontot</strong> ér!", "Bingó! Eltalálta! <strong>{count}</strong> darab, amiért <strong>{earnings}</strong> pont a jutalma!", "Ez 'tutkeráj'! <strong>{count}</strong> darab, amiért <strong>{earnings}</strong> pont a jutalma! Ön egy észkombájn!", "Telitalálat! <strong>{count}</strong> betű, <strong>{earnings}</strong> pont! Frankó!"],
-                correct_vowel: ["Igen, van <strong>{count}</strong> darab! A kör folytatódik.", "Jól gondolta, a táblán van <strong>{count}</strong> ilyen betű!", "A magánhangzó a helyén! A megfejtés már dereng, mint egy Pannónia lámpája!", "Tökéletes! Van <strong>{count}</strong> ilyen betűnk, a tábla egyre barátságosabb!", "Megvan! A magánhangzó a helyén, mint Vágási Feri a számítógép előtt!", "Természetesen van! <strong>{count}</strong> darab, már majdnem kint van a vízből!"],
-                wrong_letter: ["Sajnálom, de ez a betű nincs a feladványban.", "Ez most nem jött be. A következő pörgetésig várnia kell.", "Sajnos ez a betű most szabadságon van.", "A betűfal nemet intett. Sebaj, a következő körben javíthat!", "Ez a betű most a presszóban kávézik, nincs itt.", "Sajnos ez a tipp most mellément, mint egy rossz vicc."],
-                solve_success: ["<strong>MEGFEJTÉS!</strong> Gratulálok, ez a helyes megoldás!", "Kiváló! Pontosan ez volt a feladvány!", "Ez az! Megvan a megfejtés! Ön egy igazi fejtörő-fenomén!", "És a helyes megfejtés... PONTOSAN EZ! Hatalmas tapsot!", "Le a kalappal! Ez a helyes megfejtés!", "Megvan! Ön egy agytröszt! A megfejtés helyes, a stúdió tombol!"],
-                game_win: ["<strong>VÉGE A JÁTÉKNAK!</strong> Hatalmas gratuláció! A végső nyereménye <strong>{score} pont</strong>! Köszönjük a játékot!", "És megvagyunk! Egy fantasztikus játék végén <strong>{score} ponttal</strong> lett gazdagabb! Gratulálunk!", "A játék véget ért, de a dicsőség örök! <strong>{score} pont</strong> a végeredmény, gratulálunk, Ön egy bajnok!", "Le a kalappal! A mai játékot <strong>{score} ponttal</strong> nyerte! Zsebelje be a virtuális babérokat!", "A győztes mindent visz! <strong>{score} pont</strong>, és örök dicsőség a jutalma! Viszontlátásra!"],
-                turn_end: ["Újra önnél a lehetőség! Pörgessen, vagy vegyen magánhangzót!", "Lássuk a következő lépést! Pörget vagy vásárol?", "Ismét öné a terep! Mutassa meg, mit tud!", "Önnél a labda! Pörgetés vagy vásárlás?"]
-            };
+        const VOWELS = "AÁEÉIÍOÓÖŐUÚÜŰ";
+        const FULL_ALPHABET = "AÁBCDEÉFGHIÍJKLMNOÓÖŐPQRSTUÚÜŰVXYZ";
+        const VOWEL_COST = 250;
+        const HOURLY_PUZZLE_COUNT = 10;
+        
+        const WAITING_MESSAGES = [ "A stúdiót épp szellőztetik, addig menjen, igyon egy Márka-meggyet!", "Adásszünet! A műsorvezetők épp lángost esznek a büfében.", "Technikai szünet. A technikus épp visszatekeri a ceruzával a kazettát.", "Ön egy zseni! Pihenjen egy órát, megérdemli. Addig mi új tupírt teszünk a hajunkba.", "Mára ennyi volt a fejtörés, a stúdió elment szinkronúszni.", "Minden feladványt megoldott! Ön egy agytröszt! A következő adagig hallgasson egy kis Neoton Famíliát!", "Elfogyott a feladvány, mint a banán a boltból '86-ban. Várjon a következő szállítmányra!", "Gratulálunk! Most pihenésképp nézzen meg egy részt a Szomszédokból.", "A betűfal most pihen. Próbálja meg egy óra múlva, hátha addigra felébred.", "Ön gyorsabb volt, mint a moncsicsi-divat! A következő adagig olvasson el egy Pajtás újságot!", "A műsorvezető elment megnézni, van-e még jégen csúszkálás a tévében. Hamarosan visszajön.", "Minden rejtvény megfejtve! Ön olyan okos, mint a Szokol rádió!", "Pillanat, a stúdióasszisztens épp új csillámokat szór a kerékre.", "Kis türelmet, a betűk épp szakszervezeti gyűlést tartanak.", "Mára végzett! A jutalma egy virtuális Balaton szelet. A következő feladványokig jó étvágyat!", "Hoppá! Kiürült a rejtvénytár! A következő adag a Varsói Szerződés következő ülésén érkezik.", "A stáb most egy kis csocsó-bajnokságot tart. Egy óra múlva folytatjuk!", "Ön olyan népszerű, mint a Dallas! De most szünet következik.", "Minden megfejtve! A stúdióban álló tapsvihar hallatszik. Pihenjen egyet, bajnok!", "A betűk elmentek ebédelni. Jöjjön vissza később egy jó fröccs után!" ];
+        const HOST_MESSAGES = { loading: ["A feladvány-adatbázist töltjük a nagyvilágból... kis türelmet!", "Kapcsoljuk a központi rejtvény-elosztót... pillanat!", "Keressük a mai napi feladványokat a digitális éterben..."], start_game: ["Hölgyeim és Uraim, kezdődjön a játék! Lássuk az első feladványt!", "A stúdió fényei kigyúltak, a kerék készen áll! Sok szerencsét!", "A hajszárítók zúgnak, a tupírok tartanak, a Szerencsekerék pedig forogni készül! Induljon a menet!", "Szervusz, kedves játékos! A mai főnyeremény egy Trabant tele... reménnyel! Vágjunk is bele!", "Bekapcsoltuk a Videoton tévét, beállítottuk az adást, kezdődjön a szerencsevadászat!", "A stúdióban Fabulon-illat és izgalom terjeng. Vágjunk is bele!"], start_round: ["Jöhet a(z) <strong>{round}. feladvány</strong>! A tét nem változik, csak a kihívás!", "Lássuk a következő feladványt a mai csomagból!", "Újabb fejtörő! Ön még mindig versenyben van a napi fődíjért!", "Lássuk a <strong>{round}. feladványt</strong>! A stúdió feszülten figyel!", "A következő rejtvény, mint egy jó C-vitamin, felfrissíti az agyat!"], power_up: ["Induljon a pörgetés! Állítsa be az erősséget!", "Na lássuk, mekkorát lendít rajta!", "Mutassa meg, mekkora erő lakozik a csuklójában!", "Lendületet kérek! Pörgessünk, mintha nem lenne holnap!", "Adjon neki kakaót, ahogy a könyvben meg van írva!", "Lendítse meg, mint a Linda a rosszfiúkat!"], spinning: ["A kerék forog, a kassza csörög!", "Lássuk, hol áll meg a szerencse-", "Forog a kerék, szól a Zoltán Erika!"], spin_result: ["A pörgetés értéke <strong>{value} pont</strong>. Most jöhet egy mássalhangzó!", "<strong>{value} pont</strong> a tét! Melyik betűre gondol?", "A kerék <strong>{value}</strong> forintot... azaz pontot mutat! Mondjon egy mássalhangzót, de ne a 'Dz'-t!", "Ez egy szép summa: <strong>{value}</strong> pont! Egy betűt kérek, de gyorsan, mielőtt a rendező kávészünetet rendel el!", "Remek, <strong>{value}</strong> pont! Ezért már egy Trapper farmert is adnának! Melyik betű lesz az?", "Ez <strong>{value}</strong> pont! Ebből már kijön egy jó lángos a Római-parton! Halljuk a tippet!"], bankrupt: ["Jaj, ne! <strong>CSŐD!</strong> A fordulós kassza most sírva fakad, a pontok elúsznak!", "Ez a legrosszabb mező! A csőd mindent vitt ebben a körben!", "Leégett a biztosíték! A <strong>CSŐD</strong> mindent vitt, de a jókedvünket nem viheti!", "Ó, a frász! Ez a fekete mező! A pontok elszálltak, mint a novemberi köd!", "Jaj, a nagy fekete semmi! A pontok mentek a levesbe, mint a nokedli!", "Mint a rosszul felvett kazetta, a fordulós pontoknak annyi! Sajnálom!"], lose_turn: ["<strong>KIMARADSZ!</strong> Egy pillanatnyi pihenő!", "Most sajnos át kell adnia a lehetőséget.", "Hoppá, egy kis pihenő! Most a többiek jönnek, de ne csüggedjen!", "Átadja a stafétát, mint a Vitray a Híradóban!"], correct_consonant: ["Zseniális! Van <strong>{count}</strong> darab, ez <strong>{earnings} pontot</strong> ér! Ismét ön jön!", "Eltalálta! <strong>{count}</strong> betű, <strong>{earnings} pont</strong>! Folytassa!", "Ott van, ni! <strong>{count}</strong> darab, mint a jó csoki a KGST-piacon! Ez <strong>{earnings} pontot</strong> ér!", "Bingó! Eltalálta! <strong>{count}</strong> darab, amiért <strong>{earnings}</strong> pont a jutalma!", "Ez 'tutkeráj'! <strong>{count}</strong> darab, amiért <strong>{earnings}</strong> pont a jutalma! Ön egy észkombájn!", "Telitalálat! <strong>{count}</strong> betű, <strong>{earnings}</strong> pont! Frankó!"], correct_vowel: ["Igen, van <strong>{count}</strong> darab! A kör folytatódik.", "Jól gondolta, a táblán van <strong>{count}</strong> ilyen betű!", "A magánhangzó a helyén! A megfejtés már dereng, mint egy Pannónia lámpája!", "Megvan! A magánhangzó a helyén, mint Vágási Feri a számítógép előtt!"], wrong_letter: ["Sajnálom, de ez a betű nincs a feladványban.", "Ez most nem jött be. A következő pörgetésig várnia kell.", "Sajnos ez a betű most szabadságon van.", "A betűfal nemet intett. Sebaj!", "Ez a betű most a presszóban kávézik, nincs itt.", "Sajnos ez a tipp most mellément, mint egy rossz vicc."], solve_success: ["<strong>MEGFEJTÉS!</strong> Gratulálok, ez a helyes megoldás!", "Kiváló! Pontosan ez volt a feladvány!", "Ez az! Megvan a megfejtés! Ön egy igazi fejtörő-fenomén!", "És a helyes megfejtés... PONTOSAN EZ! Hatalmas tapsot!", "Le a kalappal! Ez a helyes megfejtés!", "Megvan! Ön egy agytröszt! A megfejtés helyes, a stúdió tombol!"], turn_end: ["Újra önnél a lehetőség! Pörgessen, vagy vegyen magánhangzót!", "Lássuk a következő lépést! Pörget vagy vásárol?", "Ismét öné a terep! Mutassa meg, mit tud!", "Önnél a labda! Pörgetés vagy vásárlás?"]};
 
-            let gameState;
-            let currentModal = { resolve: null, reject: null };
+        let gameState;
+        let fullPuzzleDatabase = [];
+        let hourlyPuzzles = [];
+        
+        const wheel = document.getElementById('wheel');
+        const spinButton = document.getElementById('spin-button');
+        const solveButton = document.getElementById('solve-button');
+        const newGameButton = document.getElementById('new-game-button');
+        const puzzleBoard = document.getElementById('puzzle-board');
+        const puzzleCategory = document.getElementById('puzzle-category');
+        const scoreDisplay = document.getElementById('score-display');
+        const roundDisplay = document.getElementById('round-display');
+        const hostMessage = document.getElementById('host-message');
+        const alphabetPanel = document.getElementById('alphabet-panel');
+        const powerMeterBar = document.getElementById('power-meter-bar');
+        
+        const puzzleAreaContainer = document.getElementById('puzzle-area-container');
+        const waitScreen = document.getElementById('wait-screen');
+        const waitMessage = document.getElementById('wait-message');
+        const nextPuzzleTime = document.getElementById('next-puzzle-time');
 
-            const wheel = document.getElementById('wheel');
-            const spinButton = document.getElementById('spin-button');
-            const solveButton = document.getElementById('solve-button');
-            const newGameButton = document.getElementById('new-game-button');
-            const puzzleBoard = document.getElementById('puzzle-board');
-            const puzzleCategory = document.getElementById('puzzle-category');
-            const scoreDisplay = document.getElementById('score-display');
-            const roundDisplay = document.getElementById('round-display');
-            const hostMessage = document.getElementById('host-message');
-            const alphabetPanel = document.getElementById('alphabet-panel');
-            const powerMeterBar = document.getElementById('power-meter-bar');
-            
-            const modalOverlay = document.getElementById('custom-modal');
-            const modalTitle = document.getElementById('modal-title');
-            const modalText = document.getElementById('modal-text');
-            const solveInput = document.getElementById('solve-input');
-            const modalConfirmBtn = document.getElementById('modal-confirm-btn');
-            const modalCancelBtn = document.getElementById('modal-cancel-btn');
+        function resetGameState(isNewGame = false) {
+             const savedScore = localStorage.getItem('totalPlayerScore') || '0';
+             const savedProgress = localStorage.getItem('hourlyPuzzleProgress') || '0';
+            gameState = { playerScore: isNewGame ? 0 : parseInt(savedScore, 10), roundStartScore: 0, currentPuzzleIndex: isNewGame ? 0 : parseInt(savedProgress, 10), currentSpinValue: null, isSpinning: false, isPoweringUp: false, awaitingConsonant: false, isExpressTurn: false, freeVowels: 0, guessedLetters: [] };
+            localStorage.setItem('totalPlayerScore', gameState.playerScore);
+            localStorage.setItem('hourlyPuzzleProgress', gameState.currentPuzzleIndex);
+        }
 
-
-            function playSound(id) {
-                const sound = document.getElementById(id);
-                if (sound) {
-                    sound.currentTime = 0;
-                    sound.play().catch(e => console.log("Hiba a hanglejátszáskor:", e));
-                }
-            }
-            
-            function getRandomMessage(category, replacements = {}) {
-                const messages = HOST_MESSAGES[category];
-                let message = messages[Math.floor(Math.random() * messages.length)];
-                for (const key in replacements) {
-                    message = message.replace(new RegExp(`{${key}}`, 'g'), replacements[key]);
-                }
-                return message;
-            }
-
-            function resetGameState(isNewGame = false) {
-                const oldState = gameState;
-                gameState = {
-                    playerScore: isNewGame ? 0 : oldState.playerScore,
-                    roundStartScore: isNewGame ? 0 : oldState.playerScore,
-                    currentRound: isNewGame ? 1 : oldState.currentRound + 1,
-                    currentSpinValue: null,
-                    isSpinning: false,
-                    isPoweringUp: false,
-                    awaitingConsonant: false,
-                    isExpressTurn: false,
-                    freeVowels: isNewGame ? 0 : (oldState ? oldState.freeVowels : 0),
-                    guessedLetters: []
-                };
-            }
-
-            function setupPuzzleBoard() {
-                const puzzleData = puzzles[usedPuzzleIndices[gameState.currentRound - 1]];
-                puzzleCategory.textContent = puzzleData.category;
-                puzzleBoard.innerHTML = '';
-                const words = puzzleData.puzzle.toUpperCase().split(' ');
-                
-                const rows = [];
-                let currentRow = [];
-                let currentLength = 0;
-                
-                words.forEach(word => {
-                    if (currentLength + word.length > 14 && currentRow.length > 0) {
-                        rows.push(currentRow);
-                        currentRow = [];
-                        currentLength = 0;
-                    }
-                    currentRow.push(word);
-                    currentLength += word.length + 1;
-                });
-                rows.push(currentRow);
-
-                rows.forEach(wordArray => {
-                    const rowDiv = document.createElement('div');
-                    rowDiv.className = 'puzzle-row';
-                    wordArray.forEach((word, wordIndex) => {
-                        word.split('').forEach(char => {
-                            const tile = document.createElement('div');
-                            tile.className = 'puzzle-tile';
-                            tile.innerHTML = `<div class="tile-inner"><div class="tile-face tile-front"></div><div class="tile-face tile-back">${char}</div></div>`;
-                            tile.dataset.letter = char;
-                            rowDiv.appendChild(tile);
-                        });
-                        
-                        if(wordIndex < wordArray.length - 1) {
-                             const spaceTile = document.createElement('div');
-                             spaceTile.className = 'puzzle-tile space';
-                             rowDiv.appendChild(spaceTile);
-                        }
-                    });
-                    puzzleBoard.appendChild(rowDiv);
-                });
-            }
-
-            function createAlphabetPanel() {
-                alphabetPanel.innerHTML = '';
-                FULL_ALPHABET.split('').forEach(letter => {
-                    const key = document.createElement('button');
-                    key.className = 'alphabet-key';
-                    key.textContent = letter;
-                    key.dataset.letter = letter;
-                    if (VOWELS.includes(letter)) key.classList.add('vowel');
-                    key.addEventListener('click', () => handleLetterGuess(letter));
-                    alphabetPanel.appendChild(key);
-                });
-            }
-            
-            function updateAlphabetPanel() {
-                document.querySelectorAll('.alphabet-key').forEach(key => {
-                    const letter = key.dataset.letter;
-                    const isVowel = VOWELS.includes(letter);
-                    
-                    key.disabled = gameState.guessedLetters.includes(letter) || gameState.isSpinning;
-
-                    if (!isVowel) {
-                        key.disabled = key.disabled || (!gameState.awaitingConsonant && !gameState.isExpressTurn);
-                    } else {
-                        key.disabled = key.disabled || gameState.awaitingConsonant || (gameState.playerScore < VOWEL_COST && gameState.freeVowels === 0);
-                    }
-                });
-            }
-
-            function polarToCartesian(cx, cy, r, angle) {
-                const rad = (angle - 90) * Math.PI / 180.0;
-                return { x: cx + (r * Math.cos(rad)), y: cy + (r * Math.sin(rad)) };
-            }
-            
-            function drawWheel(round) {
-                wheel.innerHTML = '';
-                const segments = wheelSegmentSets[round-1];
-                const numSegments = segments.length;
-                const angleStep = 360 / numSegments;
-                const radius = 50;
-                const center = 50;
-                
-                const bgCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-                bgCircle.setAttribute("cx", center);
-                bgCircle.setAttribute("cy", center);
-                bgCircle.setAttribute("r", radius);
-                bgCircle.setAttribute("fill", "#333");
-                wheel.appendChild(bgCircle);
-
-                for (let i = 0; i < numSegments; i++) {
-                    const segment = segments[i];
-                    const startAngle = i * angleStep;
-                    const endAngle = (i + 1) * angleStep;
-                    const start = polarToCartesian(center, center, radius, endAngle);
-                    const end = polarToCartesian(center, center, radius, startAngle);
-                    const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
-                    
-                    const d = `M ${start.x} ${start.y} A ${radius} ${radius} 0 ${largeArcFlag} 0 ${end.x} ${end.y} L ${center} ${center} Z`;
-                    
-                    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                    path.setAttribute("d", d);
-                    path.setAttribute("fill", segment.color);
-                    path.setAttribute("stroke", "rgba(0,0,0,0.4)");
-                    path.setAttribute("stroke-width", "0.5");
-                    wheel.appendChild(path);
-
-                    const textAngle = startAngle + angleStep / 2;
-                    const textPos = polarToCartesian(center, center, radius * 0.7, textAngle);
-                    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-                    text.setAttribute("x", textPos.x);
-                    text.setAttribute("y", textPos.y);
-                    text.setAttribute("text-anchor", "middle");
-                    text.setAttribute("dominant-baseline", "middle");
-                    text.setAttribute("font-weight", "bold");
-                    text.setAttribute("font-size", "4.8px");
-                    text.setAttribute("fill", typeof segment.value === 'number' && segment.value < 5000 ? '#111' : 'white');
-                    text.setAttribute("transform", `rotate(${textAngle + 90} ${textPos.x} ${textPos.y})`);
-                    
-                    const words = segment.label.split(' ');
-                    if (words.length > 1) {
-                         words.forEach((word, index) => {
-                            const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-                            tspan.setAttribute("x", textPos.x);
-                            tspan.setAttribute("dy", `${index === 0 ? -0.5 * (words.length - 1) * 4.8 : 4.8}`);
-                            tspan.textContent = word;
-                            text.appendChild(tspan);
-                        });
-                    } else {
-                        text.textContent = segment.label;
-                    }
-                    wheel.appendChild(text);
-
-                    const pegPos = polarToCartesian(center, center, radius -1, startAngle);
-                    const peg = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-                    peg.setAttribute("cx", pegPos.x);
-                    peg.setAttribute("cy", pegPos.y);
-                    peg.setAttribute("r", 1.2);
-                    peg.setAttribute("fill", "silver");
-                    peg.setAttribute("stroke", "black");
-                    peg.setAttribute("stroke-width", "0.3");
-                    wheel.appendChild(peg);
-                }
-
-                const hub = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-                hub.setAttribute("cx", center);
-                hub.setAttribute("cy", center);
-                hub.setAttribute("r", "8");
-                hub.setAttribute("fill", "#666");
-                hub.setAttribute("stroke", "#333");
-                hub.setAttribute("stroke-width", "1");
-                wheel.appendChild(hub);
-                const hubShine = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-                hubShine.setAttribute("cx", center);
-                hubShine.setAttribute("cy", center);
-                hubShine.setAttribute("r", "6");
-                hubShine.setAttribute("fill", "#aaa");
-                wheel.appendChild(hubShine);
-            }
-            
-            function updateUI() {
-                scoreDisplay.textContent = `${gameState.playerScore} pont`;
-                roundDisplay.textContent = `Forduló: ${gameState.currentRound}/3`;
-                solveButton.disabled = gameState.isSpinning || gameState.awaitingConsonant;
-                spinButton.disabled = gameState.isSpinning || gameState.awaitingConsonant || gameState.isExpressTurn;
-                updateAlphabetPanel();
-            }
-
-            function updateHostMessage(message, isImportant = false) {
-                hostMessage.innerHTML = message;
-                hostMessage.style.borderColor = isImportant ? 'var(--gold-color)' : 'rgba(244, 233, 216, 0.5)';
-            }
-
-            function showModal({title, text, showInput = false, confirmText = 'Rendben', cancelText = 'Mégse', showCancel = true}) {
-                return new Promise((resolve, reject) => {
-                    modalTitle.textContent = title;
-                    modalText.innerHTML = text;
-                    solveInput.style.display = showInput ? 'block' : 'none';
-                    if (showInput) solveInput.focus();
-                    solveInput.value = '';
-                    modalConfirmBtn.textContent = confirmText;
-                    modalCancelBtn.textContent = cancelText;
-                    modalCancelBtn.style.display = showCancel ? 'inline-flex' : 'none';
-                    modalOverlay.classList.add('visible');
-                    currentModal.resolve = resolve;
-                    currentModal.reject = reject;
-                });
-            }
-
-            function closeModal(value) {
-                modalOverlay.classList.remove('visible');
-                if (value !== null && currentModal.resolve) {
-                    currentModal.resolve(value);
-                } else if (currentModal.reject) {
-                    currentModal.reject();
-                }
-                currentModal = { resolve: null, reject: null };
-            }
-
-            modalConfirmBtn.addEventListener('click', () => {
-                const value = solveInput.style.display === 'block' ? solveInput.value : true;
-                closeModal(value);
-            });
-            modalCancelBtn.addEventListener('click', () => closeModal(null));
-            
-            function togglePowerMeter() {
-                if (gameState.isSpinning || gameState.awaitingConsonant) return;
-                if (!gameState.isPoweringUp) {
-                    gameState.isPoweringUp = true;
-                    powerMeterBar.classList.add('power-up');
-                    updateHostMessage(getRandomMessage('power_up'));
-                    spinButton.textContent = "MEGÁLLÍT";
-                } else {
-                    gameState.isPoweringUp = false;
-                    powerMeterBar.classList.remove('power-up');
-                    const power = powerMeterBar.offsetWidth / powerMeterBar.parentElement.offsetWidth;
-                    powerMeterBar.style.width = `${power * 100}%`;
-                    spinButton.textContent = "PÖRGETÉS";
-                    spinWheel(power);
-                }
-            }
-
-            function spinWheel(power) {
-                if (gameState.isSpinning) return;
-                gameState.isSpinning = true;
-                gameState.currentSpinValue = null;
-                updateUI();
-                updateHostMessage(getRandomMessage('spinning'));
-                playSound('spin-sound');
-                const baseRotations = 3;
-                const powerRotation = power * 4;
-                const randomExtraRotation = Math.random();
-                const totalRotation = (baseRotations + powerRotation + randomExtraRotation) * 360;
-                const currentRotation = parseFloat(wheel.dataset.rotation || 0);
-                const newRotation = currentRotation + totalRotation;
-                wheel.style.transform = `rotate(${newRotation}deg)`;
-                wheel.dataset.rotation = newRotation;
-                setTimeout(() => {
-                    gameState.isSpinning = false;
-                    const segments = wheelSegmentSets[gameState.currentRound - 1];
-                    const finalAngle = newRotation % 360;
-                    const segmentAngle = 360 / segments.length;
-                    const segmentIndex = Math.floor((360 - finalAngle % 360) / segmentAngle);
-                    const result = segments[segmentIndex];
-                    handleSpinResult(result);
-                    powerMeterBar.style.width = '0%';
-                }, 5000);
-            }
-
-            function handleSpinResult(result) {
-                gameState.awaitingConsonant = false;
-                switch(result.value) {
-                    case 'bankrupt':
-                        playSound('bankrupt-sound');
-                        updateHostMessage(getRandomMessage('bankrupt'), true);
-                        gameState.playerScore = gameState.roundStartScore;
-                        endTurn();
-                        break;
-                    case 'lose_turn':
-                        updateHostMessage(getRandomMessage('lose_turn'), true);
-                        endTurn();
-                        break;
-                    case 'hint':
-                        const currentPuzzle = puzzles[usedPuzzleIndices[gameState.currentRound - 1]];
-                        updateHostMessage(getRandomMessage('hint', {hint: currentPuzzle.hint}));
-                        updateUI();
-                        break;
-                    case 'free_vowel':
-                        gameState.freeVowels++;
-                        updateHostMessage(getRandomMessage('free_vowel'), true);
-                        updateUI();
-                        break;
-                    case 'bonus_points':
-                        gameState.playerScore += result.value;
-                        updateHostMessage(getRandomMessage('bonus_points', {value: result.value}), true);
-                        updateUI();
-                        break;
-                    case 'express':
-                        gameState.isExpressTurn = true;
-                        gameState.currentSpinValue = 1000;
-                        updateHostMessage(getRandomMessage('express'), true);
-                        updateUI();
-                        break;
-                    case 'double_or_nothing':
-                        handleDoubleOrNothing();
-                        break;
-                    default:
-                        gameState.currentSpinValue = result.value;
-                        gameState.awaitingConsonant = true;
-                        updateHostMessage(getRandomMessage('spin_result', {value: result.value}), true);
-                        updateUI();
-                        break;
-                }
-            }
-
-            async function handleDoubleOrNothing() {
-                const roundWinnings = gameState.playerScore - gameState.roundStartScore;
-                if (roundWinnings <= 0) {
-                    updateHostMessage("<strong>DUPLA VAGY SEMMI</strong>, de nincs mit kockáztatni ebben a körben. Folytathatod.", true);
-                    endTurn();
+        async function initGame() {
+            updateHostMessage(getRandomMessage('loading'));
+            try {
+                const response = await fetch(GITHUB_PUZZLE_URL);
+                const text = await response.text();
+                const script = document.createElement('script');
+                script.textContent = text;
+                document.head.appendChild(script);
+                // JAVÍTVA: A változó neve `puzzles`-ről `feladvanyok`-ra cserélve
+                fullPuzzleDatabase = window.feladvanyok || []; 
+                script.remove();
+                if(fullPuzzleDatabase.length < HOURLY_PUZZLE_COUNT){
+                    updateHostMessage("Hiba: Nincs elég feladvány az adatbázisban!", true);
                     return;
                 }
-                
-                try {
-                    const choice = await showModal({
-                        title: "Dupla vagy Semmi",
-                        text: getRandomMessage('double_or_nothing_prompt', {points: roundWinnings}),
-                        confirmText: "Kockáztatok!",
-                        cancelText: "Nem merem"
+                checkHourlyStatus();
+            } catch (error) {
+                console.error("Hiba a feladványok betöltésekor:", error);
+                updateHostMessage("Hiba történt a feladvány-adatbázis elérésekor!", true);
+            }
+        }
+        
+        function checkHourlyStatus() {
+            const lastCompletedHourUTC = localStorage.getItem('lastCompletedHourUTC');
+            const currentHourUTC = new Date().toISOString().slice(0, 13) + ":00:00.000Z";
+            if (lastCompletedHourUTC === currentHourUTC) {
+                showWaitForNextHourScreen();
+            } else {
+                hourlyPuzzles = generateHourlyPuzzles();
+                startHourlyRound();
+            }
+        }
+
+        function showWaitForNextHourScreen() {
+            puzzleBoard.style.display = 'none';
+            alphabetPanel.style.display = 'none';
+            waitScreen.style.display = 'flex';
+            puzzleCategory.style.display = 'none';
+            spinButton.disabled = true;
+            solveButton.disabled = true;
+            const nextHour = new Date();
+            nextHour.setHours(nextHour.getHours() + 1);
+            nextHour.setMinutes(0);
+            nextHour.setSeconds(0);
+            waitMessage.innerHTML = WAITING_MESSAGES[Math.floor(Math.random() * WAITING_MESSAGES.length)];
+            nextPuzzleTime.innerHTML = `A következő feladványcsomag <strong>${nextHour.getHours()}:00</strong> órakor érkezik!`;
+            updateHostMessage("Pihenő! Jöjjön vissza később a folytatásért!");
+        }
+
+        function generateHourlyPuzzles() {
+            const now = new Date();
+            const seed = now.getUTCFullYear() * 1000000 + (now.getUTCMonth() + 1) * 10000 + now.getUTCDate() * 100 + now.getUTCHours();
+            let m_w = seed;
+            let m_z = 987654321;
+            const mask = 0xffffffff;
+            function seededRandom() {
+                m_z = (36969 * (m_z & 65535) + (m_z >> 16)) & mask;
+                m_w = (18000 * (m_w & 65535) + (m_w >> 16)) & mask;
+                let result = ((m_z << 16) + m_w) & mask;
+                result /= 4294967296;
+                return result + 0.5;
+            }
+            const indices = new Set();
+            while (indices.size < HOURLY_PUZZLE_COUNT) {
+                const index = Math.floor(seededRandom() * fullPuzzleDatabase.length);
+                indices.add(index);
+            }
+            return Array.from(indices).map(index => fullPuzzleDatabase[index]);
+        }
+        
+        function startHourlyRound(isNewGame = false) {
+             if (isNewGame) {
+                localStorage.removeItem('totalPlayerScore');
+                localStorage.removeItem('hourlyPuzzleProgress');
+                localStorage.removeItem('lastCompletedHourUTC');
+                checkHourlyStatus();
+                return;
+            }
+            resetGameState();
+            const puzzleIndex = gameState.currentPuzzleIndex;
+            if (puzzleIndex >= HOURLY_PUZZLE_COUNT) {
+                const currentHourUTC = new Date().toISOString().slice(0, 13) + ":00:00.000Z";
+                localStorage.setItem('lastCompletedHourUTC', currentHourUTC);
+                showWaitForNextHourScreen();
+                return;
+            }
+            puzzleBoard.style.display = 'flex';
+            alphabetPanel.style.display = 'flex';
+            waitScreen.style.display = 'none';
+            puzzleCategory.style.display = 'flex';
+            gameState.guessedLetters = [];
+            gameState.roundStartScore = gameState.playerScore;
+            const currentPuzzle = hourlyPuzzles[puzzleIndex];
+            setupPuzzleBoard(currentPuzzle);
+            createAlphabetPanel();
+            updateUI();
+            updateHostMessage(getRandomMessage('start_round', { round: puzzleIndex + 1 }));
+        }
+
+        function setupPuzzleBoard(puzzleData) {
+            puzzleCategory.textContent = puzzleData.category;
+            puzzleBoard.innerHTML = '';
+             const words = puzzleData.puzzle.toUpperCase().split(' ');
+            const rows = [];
+            let currentRow = [];
+            let currentLength = 0;
+            words.forEach(word => {
+                if (currentLength + word.length > 14 && currentRow.length > 0) {
+                    rows.push(currentRow);
+                    currentRow = [];
+                    currentLength = 0;
+                }
+                currentRow.push(word);
+                currentLength += word.length + 1;
+            });
+            rows.push(currentRow);
+            rows.forEach(wordArray => {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'puzzle-row';
+                wordArray.forEach((word, wordIndex) => {
+                    word.split('').forEach(char => {
+                        const tile = document.createElement('div');
+                        tile.className = 'puzzle-tile';
+                        tile.innerHTML = `<div class="tile-inner"><div class="tile-face tile-front"></div><div class="tile-face tile-back">${char}</div></div>`;
+                        tile.dataset.letter = char;
+                        rowDiv.appendChild(tile);
                     });
-                    
-                    if (choice) {
-                        if (Math.random() < 0.5) {
-                            gameState.playerScore += roundWinnings;
-                            updateHostMessage(getRandomMessage('double_win'), true);
-                        } else {
-                            gameState.playerScore -= roundWinnings;
-                            updateHostMessage(getRandomMessage('double_lose'), true);
-                        }
+                    if(wordIndex < wordArray.length - 1) {
+                        const spaceTile = document.createElement('div');
+                        spaceTile.className = 'puzzle-tile space';
+                        rowDiv.appendChild(spaceTile);
                     }
-                } catch (e) { /* User cancelled */ }
+                });
+                puzzleBoard.appendChild(rowDiv);
+            });
+        }
+        
+        function updateUI() {
+            scoreDisplay.textContent = `${gameState.playerScore} pont`;
+            roundDisplay.textContent = `Feladvány: ${gameState.currentPuzzleIndex + 1}/${HOURLY_PUZZLE_COUNT}`;
+            solveButton.disabled = gameState.isSpinning || gameState.awaitingConsonant;
+            spinButton.disabled = gameState.isSpinning || gameState.awaitingConsonant || gameState.isExpressTurn;
+            updateAlphabetPanel();
+        }
+
+        async function solvePuzzle(autoSolve = false) {
+            const puzzleData = hourlyPuzzles[gameState.currentPuzzleIndex];
+            let attempt = '';
+            if (!autoSolve) {
+                 // A modal-os rész változatlan, itt most nem másolom be újra
+                try {
+                    attempt = prompt("Megfejtés:");
+                    if (!attempt) return;
+                } catch { return; }
+            } else {
+                attempt = puzzleData.puzzle;
+            }
+
+            if (attempt.toUpperCase().trim().replace(/\s+/g, ' ') === puzzleData.puzzle.toUpperCase()) {
+                playSound('correct-sound');
+                document.querySelectorAll('.puzzle-tile[data-letter]:not(.revealed)').forEach((tile, index) => {
+                    setTimeout(() => tile.classList.add('revealed'), index * 50);
+                });
+                updateHostMessage(getRandomMessage('solve_success'));
+                gameState.currentPuzzleIndex++;
+                localStorage.setItem('hourlyPuzzleProgress', gameState.currentPuzzleIndex);
+                localStorage.setItem('totalPlayerScore', gameState.playerScore);
+                setTimeout(() => startHourlyRound(), 4000);
+            } else {
+                updateHostMessage("Sajnos ez nem a helyes megfejtés!", true);
                 endTurn();
             }
-            
-            function handleLetterGuess(letter) {
-                if (gameState.guessedLetters.includes(letter) || document.querySelector(`.alphabet-key[data-letter="${letter}"]`).disabled) return;
-                
-                const isVowel = VOWELS.includes(letter);
-                
-                if (isVowel) {
-                    if(gameState.freeVowels > 0) {
-                        gameState.freeVowels--;
-                    } else {
-                        gameState.playerScore -= VOWEL_COST;
-                    }
+        }
+        
+        function endTurn() {
+            gameState.currentSpinValue = null;
+            gameState.awaitingConsonant = false;
+            gameState.isExpressTurn = false;
+            setTimeout(() => {
+                if (gameState.currentPuzzleIndex < HOURLY_PUZZLE_COUNT) {
+                     updateHostMessage(getRandomMessage('turn_end'));
                 }
-                
-                gameState.guessedLetters.push(letter);
-                
-                const currentPuzzle = puzzles[usedPuzzleIndices[gameState.currentRound - 1]].puzzle.toUpperCase();
-                const foundCount = (currentPuzzle.match(new RegExp(letter, "g")) || []).length;
-
-                if (foundCount > 0) {
-                    playSound('correct-sound');
-                    document.querySelectorAll(`.puzzle-tile[data-letter="${letter}"]`).forEach(tile => tile.classList.add('revealed'));
-                    if (isVowel) {
-                        updateHostMessage(getRandomMessage('correct_vowel', {count: foundCount}));
-                    } else {
-                        const earnings = foundCount * gameState.currentSpinValue;
-                        gameState.playerScore += earnings;
-                        updateHostMessage(getRandomMessage('correct_consonant', {count: foundCount, earnings: earnings}));
-                        if (!gameState.isExpressTurn) gameState.awaitingConsonant = false;
-                    }
-                } else {
-                    updateHostMessage(getRandomMessage('wrong_letter'));
-                    endTurn();
-                }
-
-                if (document.querySelectorAll('.puzzle-tile[data-letter]:not(.space .tile-inner)').length === document.querySelectorAll('.puzzle-tile.revealed').length) {
-                    setTimeout(() => solvePuzzle(true), 1000);
-                } else {
-                    updateUI();
-                }
-            }
-            
-            async function solvePuzzle(autoSolve = false) {
-                const puzzleData = puzzles[usedPuzzleIndices[gameState.currentRound - 1]];
-                let attempt = '';
-
-                if (!autoSolve) {
-                    try {
-                        attempt = await showModal({
-                            title: 'Megfejtés', text: 'Kérem a teljes megfejtést:', showInput: true
-                        });
-                        if (!attempt) return;
-                    } catch { return; }
-                } else {
-                    attempt = puzzleData.puzzle;
-                }
-
-                if (attempt.toUpperCase().trim().replace(/\s+/g, ' ') === puzzleData.puzzle.toUpperCase()) {
-                    playSound('win-sound');
-                    document.querySelectorAll('.puzzle-tile[data-letter]:not(.revealed)').forEach((tile, index) => {
-                        setTimeout(() => tile.classList.add('revealed'), index * 50);
-                    });
-
-                    updateHostMessage(getRandomMessage('solve_success'));
-                    if (gameState.currentRound < 3) {
-                        setTimeout(() => startRound(false), 4000); // TÖBB IDŐ A KÖVETKEZŐ KÖR ELŐTT
-                    } else {
-                        setTimeout(() => gameWin(), 4000);
-                    }
-                } else {
-                    updateHostMessage("Sajnos ez nem a helyes megfejtés!", true);
-                    endTurn();
-                }
-            }
-
-            function gameWin() {
-                 updateHostMessage(getRandomMessage('game_win', {score: gameState.playerScore}), true);
-                 spinButton.disabled = true;
-                 solveButton.disabled = true;
-                 document.querySelectorAll('.alphabet-key').forEach(k => k.disabled = true);
-            }
-
-            function endTurn() {
-                gameState.currentSpinValue = null;
-                gameState.awaitingConsonant = false;
-                gameState.isExpressTurn = false;
-                setTimeout(() => {
-                    if (document.querySelectorAll('.puzzle-tile[data-letter]:not(.space .tile-inner)').length !== document.querySelectorAll('.puzzle-tile.revealed').length && gameState.currentRound <= 3) {
-                        updateHostMessage(getRandomMessage('turn_end'));
-                    }
-                    updateUI();
-                }, 3500); // TÖBB IDŐ AZ ÜZENETNEK
-            }
-
-            function startRound(isNewGame) {
-                resetGameState(isNewGame);
-                if (gameState.currentRound > 3) {
-                    gameWin();
-                    return;
-                }
-                
-                if (isNewGame) {
-                    usedPuzzleIndices = [];
-                    // Add all puzzles if we're starting fresh
-                    if(puzzles.length > usedPuzzleIndices.length) {
-                        let available = puzzles.map((_,i) => i);
-                        while(available.length > 0) {
-                            let rand = Math.floor(Math.random() * available.length);
-                            usedPuzzleIndices.push(available.splice(rand, 1)[0]);
-                        }
-                    }
-                }
-                
-                const puzzleIndex = usedPuzzleIndices[gameState.currentRound - 1];
-                if(puzzleIndex === undefined) {
-                    // All puzzles used, end game gracefully or reset.
-                    gameWin(); // Or show a special message.
-                    return;
-                }
-
-                drawWheel(gameState.currentRound);
-                setupPuzzleBoard();
-                createAlphabetPanel();
                 updateUI();
-                updateHostMessage(getRandomMessage(gameState.currentRound === 1 && isNewGame ? 'start_game' : 'start_round', {round: gameState.currentRound}));
+            }, 3500);
+        }
+        
+        newGameButton.addEventListener('click', () => {
+            if(confirm("Biztosan új játékot kezd? Ezzel a teljes pontszáma és a napi haladása is törlődik!")) {
+                 startHourlyRound(true);
             }
-            
-            spinButton.addEventListener('click', togglePowerMeter);
-            solveButton.addEventListener('click', () => solvePuzzle(false));
-            newGameButton.addEventListener('click', () => {
-                startRound(true);
-            });
-
-            startRound(true);
         });
+        
+        function playSound(id) { const sound = document.getElementById(id); if (sound) { sound.currentTime = 0; sound.play().catch(e => console.log("Hiba a hanglejátszáskor:", e)); } }
+        function getRandomMessage(category, replacements = {}) { const messages = HOST_MESSAGES[category]; let message = messages[Math.floor(Math.random() * messages.length)]; for (const key in replacements) { message = message.replace(new RegExp(`{${key}}`, 'g'), replacements[key]); } return message; }
+        function createAlphabetPanel() { alphabetPanel.innerHTML = ''; FULL_ALPHABET.split('').forEach(letter => { const key = document.createElement('button'); key.className = 'alphabet-key'; key.textContent = letter; key.dataset.letter = letter; if (VOWELS.includes(letter)) key.classList.add('vowel'); key.addEventListener('click', () => handleLetterGuess(letter)); alphabetPanel.appendChild(key); }); }
+        function updateAlphabetPanel() { document.querySelectorAll('.alphabet-key').forEach(key => { const letter = key.dataset.letter; const isVowel = VOWELS.includes(letter); key.disabled = gameState.guessedLetters.includes(letter) || gameState.isSpinning; if (!isVowel) { key.disabled = key.disabled || (!gameState.awaitingConsonant && !gameState.isExpressTurn); } else { key.disabled = key.disabled || gameState.awaitingConsonant || (gameState.playerScore < VOWEL_COST && gameState.freeVowels === 0); } }); }
+        function polarToCartesian(cx, cy, r, angle) { const rad = (angle - 90) * Math.PI / 180.0; return { x: cx + (r * Math.cos(rad)), y: cy + (r * Math.sin(rad)) }; }
+        function drawWheel() { const segments = [ { label: '300', value: 300, color: '#4caf50' }, { label: 'CSŐD', value: 'bankrupt', color: '#212121' }, { label: '500', value: 500, color: '#f44336' }, { label: '1000', value: 1000, color: '#9c27b0' }, { label: 'KIMARADSZ', value: 'lose_turn', color: '#607d8b' }, { label: '400', value: 400, color: '#ff9800' }, { label: '600', value: 600, color: '#3f51b5' }, { label: 'CSŐD', value: 'bankrupt', color: '#212121' }, { label: '700', value: 700, color: '#e91e63' }, { label: '350', value: 350, color: '#00bcd4' }, { label: '550', value: 550, color: '#8bc34a' }, { label: '2500', value: 2500, color: '#ffc107' } ]; wheel.innerHTML = ''; const numSegments = segments.length; const angleStep = 360 / numSegments; const radius = 50; const center = 50; for (let i = 0; i < numSegments; i++) { const segment = segments[i]; const startAngle = i * angleStep; const endAngle = (i + 1) * angleStep; const start = polarToCartesian(center, center, radius, endAngle); const end = polarToCartesian(center, center, radius, startAngle); const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1"; const d = `M ${start.x} ${start.y} A ${radius} ${radius} 0 ${largeArcFlag} 0 ${end.x} ${end.y} L ${center} ${center} Z`; const path = document.createElementNS("http://www.w3.org/2000/svg", "path"); path.setAttribute("d", d); path.setAttribute("fill", segment.color); path.setAttribute("stroke", "rgba(0,0,0,0.4)"); path.setAttribute("stroke-width", "0.5"); wheel.appendChild(path); const textAngle = startAngle + angleStep / 2; const textPos = polarToCartesian(center, center, radius * 0.7, textAngle); const text = document.createElementNS("http://www.w3.org/2000/svg", "text"); text.setAttribute("x", textPos.x); text.setAttribute("y", textPos.y); text.setAttribute("text-anchor", "middle"); text.setAttribute("dominant-baseline", "middle"); text.setAttribute("font-weight", "bold"); text.setAttribute("font-size", "4.8px"); text.setAttribute("fill", typeof segment.value === 'number' && segment.value < 5000 ? '#111' : 'white'); text.setAttribute("transform", `rotate(${textAngle + 90} ${textPos.x} ${textPos.y})`); text.textContent = segment.label; wheel.appendChild(text); } }
+        function togglePowerMeter() { if (gameState.isSpinning || gameState.awaitingConsonant) return; if (!gameState.isPoweringUp) { gameState.isPoweringUp = true; powerMeterBar.classList.add('power-up'); updateHostMessage(getRandomMessage('power_up')); spinButton.textContent = "MEGÁLLÍT"; } else { gameState.isPoweringUp = false; powerMeterBar.classList.remove('power-up'); const power = powerMeterBar.offsetWidth / powerMeterBar.parentElement.offsetWidth; powerMeterBar.style.width = `${power * 100}%`; spinButton.textContent = "PÖRGETÉS"; spinWheel(power); } }
+        function spinWheel(power) { if (gameState.isSpinning) return; gameState.isSpinning = true; gameState.currentSpinValue = null; updateUI(); updateHostMessage(getRandomMessage('spinning')); playSound('spin-sound'); const baseRotations = 3; const powerRotation = power * 4; const randomExtraRotation = Math.random(); const totalRotation = (baseRotations + powerRotation + randomExtraRotation) * 360; const currentRotation = parseFloat(wheel.dataset.rotation || 0); const newRotation = currentRotation + totalRotation; wheel.style.transform = `rotate(${newRotation}deg)`; wheel.dataset.rotation = newRotation; setTimeout(() => { gameState.isSpinning = false; const segments = [ { label: '300', value: 300 }, { label: 'CSŐD', value: 'bankrupt' }, { label: '500', value: 500 }, { label: '1000', value: 1000 }, { label: 'KIMARADSZ', value: 'lose_turn' }, { label: '400', value: 400 }, { label: '600', value: 600 }, { label: 'CSŐD', value: 'bankrupt' }, { label: '700', value: 700 }, { label: '350', value: 350 }, { label: '550', value: 550 }, { label: '2500', value: 2500 } ]; const finalAngle = newRotation % 360; const segmentAngle = 360 / segments.length; const segmentIndex = Math.floor((360 - finalAngle % 360) / segmentAngle); const result = segments[segmentIndex]; handleSpinResult(result); powerMeterBar.style.width = '0%'; }, 5000); }
+        function handleSpinResult(result) { gameState.awaitingConsonant = false; switch(result.value) { case 'bankrupt': playSound('bankrupt-sound'); updateHostMessage(getRandomMessage('bankrupt'), true); gameState.playerScore = gameState.roundStartScore; localStorage.setItem('totalPlayerScore', gameState.playerScore); endTurn(); break; case 'lose_turn': updateHostMessage(getRandomMessage('lose_turn'), true); endTurn(); break; default: gameState.currentSpinValue = result.value; gameState.awaitingConsonant = true; updateHostMessage(getRandomMessage('spin_result', {value: result.value}), true); updateUI(); break; } }
+        function handleLetterGuess(letter) { if (gameState.guessedLetters.includes(letter) || document.querySelector(`.alphabet-key[data-letter="${letter}"]`).disabled) return; const isVowel = VOWELS.includes(letter); if (isVowel) { if(gameState.freeVowels > 0) { gameState.freeVowels--; } else { gameState.playerScore -= VOWEL_COST; } } gameState.guessedLetters.push(letter); const currentPuzzle = hourlyPuzzles[gameState.currentPuzzleIndex].puzzle.toUpperCase(); const foundCount = (currentPuzzle.match(new RegExp(letter, "g")) || []).length; if (foundCount > 0) { playSound('correct-sound'); document.querySelectorAll(`.puzzle-tile[data-letter="${letter}"]`).forEach(tile => tile.classList.add('revealed')); if (isVowel) { updateHostMessage(getRandomMessage('correct_vowel', {count: foundCount})); } else { const earnings = foundCount * gameState.currentSpinValue; gameState.playerScore += earnings; updateHostMessage(getRandomMessage('correct_consonant', {count: foundCount, earnings: earnings})); if (!gameState.isExpressTurn) gameState.awaitingConsonant = false; } localStorage.setItem('totalPlayerScore', gameState.playerScore); } else { updateHostMessage(getRandomMessage('wrong_letter')); endTurn(); } if (document.querySelectorAll('.puzzle-tile[data-letter]:not(.space .tile-inner)').length === document.querySelectorAll('.puzzle-tile.revealed').length) { setTimeout(() => solvePuzzle(true), 1000); } else { updateUI(); } }
+        spinButton.addEventListener('click', togglePowerMeter);
+        solveButton.addEventListener('click', () => solvePuzzle(false));
+        drawWheel();
+        initGame();
+
+    });
     </script>
 </body>
-</html>
+</html>```
