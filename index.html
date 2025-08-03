@@ -485,7 +485,8 @@
     <script>
     document.addEventListener('DOMContentLoaded', () => {
 
-        const GITHUB_PUZZLE_URL = 'https://raw.githubusercontent.com/felhasznalo/repo/main/feladvanyok.js'; 
+        // A TE SAJÁT LINKED BEILLESZTVE
+        const GITHUB_PUZZLE_URL = 'https://raw.githubusercontent.com/Robszerko/szerencsekerek/refs/heads/main/feladvanyok.js'; 
 
         const VOWELS = "AÁEÉIÍOÓÖŐUÚÜŰ";
         const FULL_ALPHABET = "AÁBCDEÉFGHIÍJKLMNOÓÖŐPQRSTUÚÜŰVXYZ";
@@ -528,11 +529,11 @@
             updateHostMessage(getRandomMessage('loading'));
             try {
                 const response = await fetch(GITHUB_PUZZLE_URL);
+                if (!response.ok) { throw new Error(`HTTP hiba! Státusz: ${response.status}`); }
                 const text = await response.text();
                 const script = document.createElement('script');
                 script.textContent = text;
                 document.head.appendChild(script);
-                // JAVÍTVA: A változó neve `puzzles`-ről `feladvanyok`-ra cserélve
                 fullPuzzleDatabase = window.feladvanyok || []; 
                 script.remove();
                 if(fullPuzzleDatabase.length < HOURLY_PUZZLE_COUNT){
@@ -548,7 +549,7 @@
         
         function checkHourlyStatus() {
             const lastCompletedHourUTC = localStorage.getItem('lastCompletedHourUTC');
-            const currentHourUTC = new Date().toISOString().slice(0, 13) + ":00:00.000Z";
+            const currentHourUTC = new Date().toISOString().slice(0, 13);
             if (lastCompletedHourUTC === currentHourUTC) {
                 showWaitForNextHourScreen();
             } else {
@@ -565,9 +566,7 @@
             spinButton.disabled = true;
             solveButton.disabled = true;
             const nextHour = new Date();
-            nextHour.setHours(nextHour.getHours() + 1);
-            nextHour.setMinutes(0);
-            nextHour.setSeconds(0);
+            nextHour.setHours(nextHour.getHours() + 1, 0, 0, 0);
             waitMessage.innerHTML = WAITING_MESSAGES[Math.floor(Math.random() * WAITING_MESSAGES.length)];
             nextPuzzleTime.innerHTML = `A következő feladványcsomag <strong>${nextHour.getHours()}:00</strong> órakor érkezik!`;
             updateHostMessage("Pihenő! Jöjjön vissza később a folytatásért!");
@@ -587,7 +586,7 @@
                 return result + 0.5;
             }
             const indices = new Set();
-            while (indices.size < HOURLY_PUZZLE_COUNT) {
+            while (indices.size < HOURLY_PUZZLE_COUNT && indices.size < fullPuzzleDatabase.length) {
                 const index = Math.floor(seededRandom() * fullPuzzleDatabase.length);
                 indices.add(index);
             }
@@ -604,8 +603,8 @@
             }
             resetGameState();
             const puzzleIndex = gameState.currentPuzzleIndex;
-            if (puzzleIndex >= HOURLY_PUZZLE_COUNT) {
-                const currentHourUTC = new Date().toISOString().slice(0, 13) + ":00:00.000Z";
+            if (puzzleIndex >= HOURLY_PUZZLE_COUNT || !hourlyPuzzles || hourlyPuzzles.length === 0) {
+                const currentHourUTC = new Date().toISOString().slice(0, 13);
                 localStorage.setItem('lastCompletedHourUTC', currentHourUTC);
                 showWaitForNextHourScreen();
                 return;
@@ -624,6 +623,11 @@
         }
 
         function setupPuzzleBoard(puzzleData) {
+            if (!puzzleData) {
+                console.error("Hiba: Nem található feladvány.");
+                showWaitForNextHourScreen();
+                return;
+            }
             puzzleCategory.textContent = puzzleData.category;
             puzzleBoard.innerHTML = '';
              const words = puzzleData.puzzle.toUpperCase().split(' ');
@@ -673,10 +677,10 @@
             const puzzleData = hourlyPuzzles[gameState.currentPuzzleIndex];
             let attempt = '';
             if (!autoSolve) {
-                 // A modal-os rész változatlan, itt most nem másolom be újra
-                try {
+                 try {
+                    // A prompt egyszerűbb, de a modal jobb élményt adna
                     attempt = prompt("Megfejtés:");
-                    if (!attempt) return;
+                    if (attempt === null) return; // Mégse gomb
                 } catch { return; }
             } else {
                 attempt = puzzleData.puzzle;
@@ -726,6 +730,7 @@
         function spinWheel(power) { if (gameState.isSpinning) return; gameState.isSpinning = true; gameState.currentSpinValue = null; updateUI(); updateHostMessage(getRandomMessage('spinning')); playSound('spin-sound'); const baseRotations = 3; const powerRotation = power * 4; const randomExtraRotation = Math.random(); const totalRotation = (baseRotations + powerRotation + randomExtraRotation) * 360; const currentRotation = parseFloat(wheel.dataset.rotation || 0); const newRotation = currentRotation + totalRotation; wheel.style.transform = `rotate(${newRotation}deg)`; wheel.dataset.rotation = newRotation; setTimeout(() => { gameState.isSpinning = false; const segments = [ { label: '300', value: 300 }, { label: 'CSŐD', value: 'bankrupt' }, { label: '500', value: 500 }, { label: '1000', value: 1000 }, { label: 'KIMARADSZ', value: 'lose_turn' }, { label: '400', value: 400 }, { label: '600', value: 600 }, { label: 'CSŐD', value: 'bankrupt' }, { label: '700', value: 700 }, { label: '350', value: 350 }, { label: '550', value: 550 }, { label: '2500', value: 2500 } ]; const finalAngle = newRotation % 360; const segmentAngle = 360 / segments.length; const segmentIndex = Math.floor((360 - finalAngle % 360) / segmentAngle); const result = segments[segmentIndex]; handleSpinResult(result); powerMeterBar.style.width = '0%'; }, 5000); }
         function handleSpinResult(result) { gameState.awaitingConsonant = false; switch(result.value) { case 'bankrupt': playSound('bankrupt-sound'); updateHostMessage(getRandomMessage('bankrupt'), true); gameState.playerScore = gameState.roundStartScore; localStorage.setItem('totalPlayerScore', gameState.playerScore); endTurn(); break; case 'lose_turn': updateHostMessage(getRandomMessage('lose_turn'), true); endTurn(); break; default: gameState.currentSpinValue = result.value; gameState.awaitingConsonant = true; updateHostMessage(getRandomMessage('spin_result', {value: result.value}), true); updateUI(); break; } }
         function handleLetterGuess(letter) { if (gameState.guessedLetters.includes(letter) || document.querySelector(`.alphabet-key[data-letter="${letter}"]`).disabled) return; const isVowel = VOWELS.includes(letter); if (isVowel) { if(gameState.freeVowels > 0) { gameState.freeVowels--; } else { gameState.playerScore -= VOWEL_COST; } } gameState.guessedLetters.push(letter); const currentPuzzle = hourlyPuzzles[gameState.currentPuzzleIndex].puzzle.toUpperCase(); const foundCount = (currentPuzzle.match(new RegExp(letter, "g")) || []).length; if (foundCount > 0) { playSound('correct-sound'); document.querySelectorAll(`.puzzle-tile[data-letter="${letter}"]`).forEach(tile => tile.classList.add('revealed')); if (isVowel) { updateHostMessage(getRandomMessage('correct_vowel', {count: foundCount})); } else { const earnings = foundCount * gameState.currentSpinValue; gameState.playerScore += earnings; updateHostMessage(getRandomMessage('correct_consonant', {count: foundCount, earnings: earnings})); if (!gameState.isExpressTurn) gameState.awaitingConsonant = false; } localStorage.setItem('totalPlayerScore', gameState.playerScore); } else { updateHostMessage(getRandomMessage('wrong_letter')); endTurn(); } if (document.querySelectorAll('.puzzle-tile[data-letter]:not(.space .tile-inner)').length === document.querySelectorAll('.puzzle-tile.revealed').length) { setTimeout(() => solvePuzzle(true), 1000); } else { updateUI(); } }
+        
         spinButton.addEventListener('click', togglePowerMeter);
         solveButton.addEventListener('click', () => solvePuzzle(false));
         drawWheel();
@@ -734,4 +739,4 @@
     });
     </script>
 </body>
-</html>```
+</html>
