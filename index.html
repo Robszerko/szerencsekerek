@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Békebeli Szerencsekerék – Realtime Kiadás</title>
+    <title>Békebeli Szerencsekerék – Firebase Realtime Kiadás</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Roboto+Slab:wght@400;700&display=swap" rel="stylesheet">
@@ -218,7 +218,7 @@
 
                 <div id="host-message">Üdvözöljük a Stúdióban!</div>
                 <div id="action-buttons">
-                    <button id="solve-button" class="action-btn">Megfejtem</button>
+                    <button id="solve-button" class="action-btn" onclick="solvePuzzle()">Megfejtem</button>
                     <button id="start-bonus-timer-btn" class="action-btn" style="display:none; background:#ff9800; color:white;">⏱️ ÓRA INDUL!</button>
                     <button id="stuck-btn" class="action-btn" style="display:none;">⚠️ Kör átadása</button>
                     <button id="new-game-button" class="action-btn" onclick="exitRoomAndReturnLobby()" style="background:#607d8b; color:white;">Új Játék / Lobby</button>
@@ -270,7 +270,8 @@
 
 <div id="leaderboard-modal" class="modal-overlay">
     <div class="modal-content" style="max-width:450px;">
-        <h3>🏆 TOPLISTA</h3>
+        <h3>🏆 HETI TOPLISTA</h3>
+        <p style="font-size:0.8rem; color:#ccc; margin-top:-5px;">(Hétfő 0:00 - Vasárnap 23:59)</p>
         <div id="leaderboard-list" style="text-align:left; margin:15px 0; max-height:220px; overflow-y:auto; font-size:0.9rem;"></div>
         <button class="action-btn" onclick="document.getElementById('leaderboard-modal').classList.remove('visible')">Bezárás</button>
     </div>
@@ -279,39 +280,245 @@
 <div id="dev-modal" class="modal-overlay">
     <div class="modal-content" style="text-align:left; background:#111; border-color:#ff9800; max-width:520px; max-height:85vh; overflow-y:auto;">
         <h3 style="color:#ff9800; text-align:center;">🛠️ Fejlesztői Mód & Kerék Szerkesztő</h3>
-        <button class="action-btn" id="dev-reveal-btn" style="background:#4caf50; color:white; width:100%; margin-bottom:8px;">Betűk Felfedése</button>
+        <button class="action-btn" id="dev-reveal-btn" style="background:#4caf50; color:white; width:100%; margin-bottom:12px;">Betűk Felfedése</button>
         
-        <hr style="border-color:#333; margin:15px 0;">
-        <h4 style="color:var(--gold-color); margin:5px 0;">🎡 Kerék Szerkesztő (Körök szerint)</h4>
-        <div style="margin-bottom:10px;">
-            <label style="font-size:0.85rem; color:#ccc;">Válasszon körök közül:</label>
-            <select id="editor-round-select" onchange="loadEditorWheelForRound()" style="padding:4px; font-weight:bold;">
+        <div style="border-top: 1px solid #444; padding-top: 10px; margin-top: 10px;">
+            <label style="color:#ccc; font-size:0.85rem;">Forduló kiválasztása:</label>
+            <select id="editor-round-select" onchange="loadEditorWheelForRound()" style="width:100%; padding:6px; margin:5px 0 10px 0; background:#222; color:white; border:1px solid #555; border-radius:4px;">
                 <option value="1">1. Forduló</option>
                 <option value="2">2. Forduló</option>
                 <option value="3">3. Forduló</option>
             </select>
+            <div id="editor-segments-container" style="max-height:200px; overflow-y:auto; margin-bottom:10px;"></div>
+            <div style="display:flex; gap:6px;">
+                <button class="action-btn" onclick="addEditorSegmentRow()" style="background:#2196f3; color:white;">+ Szelet Hozzáadása</button>
+                <button class="action-btn" onclick="saveCustomWheelConfig()" style="background:#ff9800; color:white;">Mentés</button>
+            </div>
         </div>
-        <div id="editor-segments-container"></div>
-        <button class="action-btn" onclick="addEditorSegmentRow()" style="background:#2196f3; color:white; margin-top:8px; font-size:0.75rem;">+ Új Szegmens Hozzáadása</button>
-        <button class="action-btn" onclick="saveCustomWheelConfig()" style="background:#4caf50; color:white; margin-top:8px; font-size:0.75rem;">💾 KERÉK MENTÉSE AZONNAL</button>
 
-        <hr style="border-color:#333; margin:15px 0;">
-        <button class="action-btn" id="dev-clear-scores-btn" style="background:#f44336; color:white; width:100%;">💰 Nyereség Törlése</button>
         <div class="modal-buttons" style="margin-top:15px;">
             <button class="action-btn" id="dev-close-btn" style="background:#e91e63; color:white;">Bezárás</button>
         </div>
     </div>
 </div>
 
+<!-- FIREBASE COMPAT CDN KÖNYVTÁRAK -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
 <script>
 // =====================================================================
-// 🔊 HANGMOTOR (Web Audio API)
+// 🌐 KÖZVETLEN FIREBASE FELHŐ ENGINE ÉS SEGÉDFÜGGVÉNYEK A TETEJÉN
 // =====================================================================
-let audioEnabled = true;
+const FIREBASE_DB_URL = "https://szerencsekerek20260807-default-rtdb.europe-west1.firebasedatabase.app";
+
+async function fbPut(path, data) {
+    const res = await fetch(`${FIREBASE_DB_URL}/${path}.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    });
+    return await res.json();
+}
+
+async function fbPatch(path, data) {
+    const res = await fetch(`${FIREBASE_DB_URL}/${path}.json`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    });
+    return await res.json();
+}
+
+async function fbGet(path) {
+    try {
+        const res = await fetch(`${FIREBASE_DB_URL}/${path}.json`);
+        if (!res.ok) return null;
+        return await res.json();
+    } catch(e) { return null; }
+}
+
+async function fbDelete(path) {
+    try {
+        const res = await fetch(`${FIREBASE_DB_URL}/${path}.json`, { method: 'DELETE' });
+        return await res.json();
+    } catch(e) { return null; }
+}
+
+function showModal({ title, text, showInput = false, confirmText = 'Rendben', cancelText = 'Mégse', showCancel = true }) {
+    return new Promise(resolve => {
+        const modal = document.getElementById('custom-modal');
+        const btnContainer = document.getElementById('modal-buttons');
+        const input = document.getElementById('solve-input');
+        btnContainer.innerHTML = '';
+        document.getElementById('modal-title').textContent = title;
+        document.getElementById('modal-text').innerHTML = text;
+        input.style.display = showInput ? 'block' : 'none';
+        if (showInput) {
+            input.value = '';
+            setTimeout(() => input.focus(), 100);
+        }
+
+        const confirmBtn = document.createElement('button');
+        confirmBtn.className = 'action-btn'; confirmBtn.textContent = confirmText;
+        confirmBtn.onclick = () => { modal.classList.remove('visible'); resolve(showInput ? input.value : true); };
+        btnContainer.appendChild(confirmBtn);
+
+        if (showCancel) {
+            const cancelBtn = document.createElement('button');
+            cancelBtn.className = 'action-btn'; cancelBtn.style.background = '#607d8b'; cancelBtn.style.color = 'white'; cancelBtn.textContent = cancelText;
+            cancelBtn.onclick = () => { modal.classList.remove('visible'); resolve(false); };
+            btnContainer.appendChild(cancelBtn);
+        }
+        modal.classList.add('visible');
+    });
+}
+
 function toggleMute() {
     audioEnabled = !audioEnabled;
     document.getElementById('mute-btn').textContent = audioEnabled ? '🔊 Hang' : '🔇 Néma';
 }
+
+function getWeeklyId(date = new Date()) {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    const day = d.getDay() || 7;
+    d.setDate(d.getDate() - day + 1);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const dayM = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${dayM}`;
+}
+
+// FIREBASE KONFIGURÁCIÓ És INICIALIZÁLÁS
+const firebaseConfig = {
+  apiKey: "AIzaSyDkdh3W8QHHtDcM3O7_m_unhDgxoQ5oSfQ",
+  authDomain: "szerencsekerek20260807.firebaseapp.com",
+  projectId: "szerencsekerek20260807",
+  storageBucket: "szerencsekerek20260807.firebasestorage.app",
+  messagingSenderId: "362866366988",
+  appId: "1:362866366988:web:566e3c0f9dc376d341ac29",
+  databaseURL: FIREBASE_DB_URL
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// GLOBÁLIS ÁLLAPOT ÉS KONSTANSOK
+const VOWELS = "AÁEÉIÍOÓÖŐUÚÜŰ";
+const CONSONANTS = "BCDFGHJKLMNPQRSTVWXYZ";
+const FULL_ALPHABET = "AÁBCDEÉFGHIÍJKLMNOÓÖŐPQRSTUÚÜŰVWXYZ";
+const ROUND_WIN_BONUSES = { 1: 5000, 2: 10000, 3: 15000 };
+
+let audioEnabled = true;
+let myPlayerName = '';
+let myPlayerIndex = 0;
+let roomCode = null;
+let isSpectator = false;
+let roomListenerRef = null;
+
+const animatingLetters = new Set();
+let activeSpinAnimation = null;
+
+let boosterPower = 0;
+let boosterDirection = 1;
+let boosterInterval = null;
+let boosterCharging = false;
+let logoClicks = 0;
+
+let gameState = {
+    mode: 'solo',
+    phase: 'IDLE',
+    activePlayerIndex: 0,
+    players: [
+        { name: 'Játékos 1', score: 0, totalScore: 0 },
+        { name: 'Robot (Ödön)', score: 0, totalScore: 0 }
+    ],
+    round: 1,
+    totalRounds: 3,
+    currentPuzzle: null,
+    guessedLetters: [],
+    vowelCount: 0,
+    currentSpinValue: null,
+    hostMessage: 'Üdvözöljük a Stúdióban!',
+    spinInProgress: false,
+    currentRotation: 0,
+    spinPower: 0.5,
+    spinStartTime: null,
+    spinDuration: 0,
+    spinStartRotation: 0,
+    spinInitiator: 0,
+    doubleOrNothingActive: false,
+    superDoubleActive: false,
+    bonusPickedConsonants: [],
+    bonusPickedVowel: null,
+    bonusEndTime: null,
+    bonusTimerInterval: null,
+    pendingOffer: null,
+    offerResponse: null
+};
+
+let basePuzzles = [
+    { category: "TV MŰSOR", puzzle: "SZOMSZÉDOK", hint: "Ikonikus teleregény a Gazdagréti lakótelepről.", isMainPrize: false },
+    { category: "ÉDESSÉG", puzzle: "SPORT SZELET", hint: "Rumos-csokis retro finomság zöld csomagolásban.", isMainPrize: false },
+    { category: "RAJZFILM", puzzle: "TÉVÉ MACI", hint: "Minden este fogat mos az esti mese előtt.", isMainPrize: false },
+    { category: "MAGYAR VÁROS", puzzle: "SZEGED", hint: "A napfény és a híres fűszerpaprika városa.", isMainPrize: false },
+    { category: "ÍZLETES ÉTEL", puzzle: "GULYÁSLEVES", hint: "Hagyományos bográcsban főzött magyar hungarikum.", isMainPrize: false }
+];
+
+const DEFAULT_WHEELS_BASE = {
+    1: [
+        { label: '300', value: 300, color: '#4caf50' },
+        { label: '500', value: 500, color: '#f44336' },
+        { label: 'KIMARADSZ', value: 'lose_turn', color: '#ff9800' },
+        { label: '700', value: 700, color: '#00bcd4' },
+        { label: '400', value: 400, color: '#8bc34a' },
+        { label: 'CSŐD', value: 'bankrupt', color: '#212121' },
+        { label: '600', value: 600, color: '#3f51b5' },
+        { label: '800', value: 800, color: '#ffc107' },
+        { label: '1200', value: 1200, color: '#009688' },
+        { label: 'DUPLA VAGY SEMMI', value: 'double_or_nothing', color: '#e91e63' }
+    ],
+    2: [
+        { label: '500', value: 500, color: '#4caf50' },
+        { label: 'DUPLA VAGY SEMMI', value: 'double_or_nothing', color: '#e91e63' },
+        { label: 'CSŐD', value: 'bankrupt', color: '#212121' },
+        { label: '800', value: 800, color: '#00bcd4' },
+        { label: '1000', value: 1000, color: '#8bc34a' },
+        { label: 'SEGÍTSÉG', value: 'hint', color: '#ff9800' },
+        { label: '1500', value: 1500, color: '#ff5722' },
+        { label: 'KIMARADSZ', value: 'lose_turn', color: '#ff9800' },
+        { label: '2000', value: 2000, color: '#3f51b5' },
+        { label: 'CSERE', value: 'swap', color: '#9c27b0' }
+    ],
+    3: [
+        { label: '1000', value: 1000, color: '#4caf50' },
+        { label: 'SZUPER DUPLÁZÓ', value: 'super_double', color: '#e91e63' },
+        { label: '1500', value: 1500, color: '#f44336' },
+        { label: 'CSŐD', value: 'bankrupt', color: '#212121' },
+        { label: '2000', value: 2000, color: '#00bcd4' },
+        { label: 'SEGÍTSÉG', value: 'hint', color: '#009688' },
+        { label: '2500', value: 2500, color: '#8bc34a' },
+        { label: '3000', value: 3000, color: '#9c27b0' },
+        { label: 'KIMARADSZ', value: 'lose_turn', color: '#ff9800' },
+        { label: 'RABLÁS', value: 'steal', color: '#d32f2f' },
+        { label: '5000', value: 5000, color: '#3f51b5' }
+    ]
+};
+
+function getWheelForRound(r) {
+    let base = DEFAULT_WHEELS_BASE[r] || DEFAULT_WHEELS_BASE[1];
+    let segments = JSON.parse(JSON.stringify(base));
+    if (r === 1 && gameState.mode === 'online_duel') {
+        let idx = segments.findIndex(s => s.value === 500);
+        if (idx !== -1) {
+            segments[idx] = { label: 'ALKU!', value: 'offer', color: '#ff9800' };
+        }
+    }
+    return segments;
+}
+
+let wheelSegments = getWheelForRound(1);
 
 const AudioEngine = {
     ctx: null,
@@ -401,16 +608,6 @@ const AudioEngine = {
     }
 };
 
-// =====================================================================
-// 🧩 GLOBÁLIS ÁLLAPOT ÉS KONSTANSOK
-// =====================================================================
-const WORKER_URL = "https://szerencse.tkpflix.workers.dev";
-const VOWELS = "AÁEÉIÍOÓÖŐUÚÜŰ";
-const CONSONANTS = "BCDFGHJKLMNPQRSTVWXYZ";
-const FULL_ALPHABET = "AÁBCDEÉFGHIÍJKLMNOÓÖŐPQRSTUÚÜŰVWXYZ";
-
-const ROUND_WIN_BONUSES = { 1: 5000, 2: 10000, 3: 15000 };
-
 function getVowelCost() {
     if (gameState.round === 1) return 250;
     if (gameState.round === 2) return 500;
@@ -418,176 +615,66 @@ function getVowelCost() {
     return 0;
 }
 
-let myPlayerName = localStorage.getItem('bekebeli_player_name') || '';
-let myPlayerIndex = 0;
-let roomCode = null;
-let isSpectator = false;
-let pollInterval = null;
-let isLocalActionPending = false;
-
-const animatingLetters = new Set();
-let activeSpinAnimation = null;
-
-let gameState = {
-    mode: 'solo',
-    phase: 'IDLE',
-    activePlayerIndex: 0,
-    players: [
-        { name: 'Játékos 1', score: 0, totalScore: 0 },
-        { name: 'Robot (Ödön)', score: 0, totalScore: 0 }
-    ],
-    round: 1,
-    totalRounds: 3,
-    currentPuzzle: null,
-    guessedLetters: [],
-    vowelCount: 0,
-    currentSpinValue: null,
-    hostMessage: 'Üdvözöljük a Stúdióban!',
-    spinInProgress: false,
-    currentRotation: 0,
-    spinPower: 0.5,
-    spinStartTime: null,
-    spinDuration: 0,
-    spinStartRotation: 0,
-    spinInitiator: 0,
-    doubleOrNothingActive: false,
-    superDoubleActive: false,
-    bonusPickedConsonants: [],
-    bonusPickedVowel: null,
-    bonusEndTime: null,
-    bonusTimerInterval: null,
-    pendingOffer: null,
-    offerResponse: null
-};
-
-let basePuzzles = [
-    { category: "TV MŰSOR", puzzle: "SZOMSZÉDOK", hint: "Ikonikus teleregény a Gazdagréti lakótelepről.", isMainPrize: false },
-    { category: "ÉDESSÉG", puzzle: "SPORT SZELET", hint: "Rumos-csokis retro finomság zöld csomagolásban.", isMainPrize: false },
-    { category: "RAJZFILM", puzzle: "TÉVÉ MACI", hint: "Minden este fogat mos az esti mese előtt.", isMainPrize: false },
-    { category: "MAGYAR VÁROS", puzzle: "SZEGED", hint: "A napfény és a híres fűszerpaprika városa.", isMainPrize: false },
-    { category: "ÍZLETES ÉTEL", puzzle: "GULYÁSLEVES", hint: "Hagyományos bográcsban főzött magyar hungarikum.", isMainPrize: false }
-];
-
-const DEFAULT_WHEELS_BASE = {
-    1: [
-        { label: '300', value: 300, color: '#4caf50' },
-        { label: '500', value: 500, color: '#f44336' },
-        { label: 'KIMARADSZ', value: 'lose_turn', color: '#ff9800' },
-        { label: '700', value: 700, color: '#00bcd4' },
-        { label: '400', value: 400, color: '#8bc34a' },
-        { label: 'CSŐD', value: 'bankrupt', color: '#212121' },
-        { label: '600', value: 600, color: '#3f51b5' },
-        { label: '800', value: 800, color: '#ffc107' },
-        { label: '1200', value: 1200, color: '#009688' },
-        { label: 'DUPLA VAGY SEMMI', value: 'double_or_nothing', color: '#e91e63' }
-    ],
-    2: [
-        { label: '500', value: 500, color: '#4caf50' },
-        { label: 'DUPLA VAGY SEMMI', value: 'double_or_nothing', color: '#e91e63' },
-        { label: 'CSŐD', value: 'bankrupt', color: '#212121' },
-        { label: '800', value: 800, color: '#00bcd4' },
-        { label: '1000', value: 1000, color: '#8bc34a' },
-        { label: 'SEGÍTSÉG', value: 'hint', color: '#ff9800' },
-        { label: '1500', value: 1500, color: '#ff5722' },
-        { label: 'KIMARADSZ', value: 'lose_turn', color: '#ff9800' },
-        { label: '2000', value: 2000, color: '#3f51b5' },
-        { label: 'CSERE', value: 'swap', color: '#9c27b0' }
-    ],
-    3: [
-        { label: '1000', value: 1000, color: '#4caf50' },
-        { label: 'SZUPER DUPLÁZÓ', value: 'super_double', color: '#e91e63' },
-        { label: '1500', value: 1500, color: '#f44336' },
-        { label: 'CSŐD', value: 'bankrupt', color: '#212121' },
-        { label: '2000', value: 2000, color: '#00bcd4' },
-        { label: 'SEGÍTSÉG', value: 'hint', color: '#009688' },
-        { label: '2500', value: 2500, color: '#8bc34a' },
-        { label: '3000', value: 3000, color: '#9c27b0' },
-        { label: 'KIMARADSZ', value: 'lose_turn', color: '#ff9800' },
-        { label: 'RABLÁS', value: 'steal', color: '#d32f2f' },
-        { label: '5000', value: 5000, color: '#3f51b5' }
-    ]
-};
-
-function getWheelForRound(r) {
-    let base = DEFAULT_WHEELS_BASE[r] || DEFAULT_WHEELS_BASE[1];
-    let segments = JSON.parse(JSON.stringify(base));
-    if (r === 1 && gameState.mode === 'online_duel') {
-        let idx = segments.findIndex(s => s.value === 500);
-        if (idx !== -1) {
-            segments[idx] = { label: 'ALKU!', value: 'offer', color: '#ff9800' };
-        } else {
-            segments.push({ label: 'ALKU!', value: 'offer', color: '#ff9800' });
-        }
-    }
-    if (r === 1 && gameState.mode === 'solo') {
-        segments = segments.filter(s => s.value !== 'offer');
-        while (segments.length < 8) {
-            segments.push({ label: '500', value: 500, color: '#f44336' });
-        }
-    }
-    const custom = localStorage.getItem('bekebeli_custom_wheels');
-    if (custom) {
-        try {
-            const parsed = JSON.parse(custom);
-            if (parsed[r] && parsed[r].length > 0) return parsed[r];
-        } catch(e) {}
-    }
-    return segments;
+function getTodayDateString() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-let wheelSegments = getWheelForRound(1);
-let boosterPower = 0, boosterDirection = 1, boosterInterval = null, boosterCharging = false;
-let logoClicks = 0;
+async function cleanupExpiredRoomsFirebase() {
+    try {
+        const rooms = await fbGet('rooms');
+        if (rooms) {
+            const now = Date.now();
+            Object.keys(rooms).forEach(key => {
+                const room = rooms[key];
+                if (room && room.updatedAt && (now - room.updatedAt > 86400000)) {
+                    fbDelete(`rooms/${key}`);
+                }
+            });
+        }
+    } catch(e) {}
+}
 
-// =====================================================================
-// 🔄 INICIALIZÁLÁS
-// =====================================================================
 document.addEventListener('DOMContentLoaded', async () => {
     drawWheel();
     setupLogoDev();
-    await fetchPuzzles();
-    document.getElementById('stuck-btn').onclick = switchTurn;
-    document.getElementById('offer-accept').onclick = () => respondToOffer('accept');
-    document.getElementById('offer-decline').onclick = () => respondToOffer('decline');
+    cleanupExpiredRoomsFirebase();
 
-    document.getElementById('solve-input').addEventListener('keyup', (e) => {
-        if (e.key === 'Enter') {
-            const confirmBtn = document.querySelector('#modal-buttons button');
-            if (confirmBtn) confirmBtn.click();
-        }
-    });
+    const stuckBtn = document.getElementById('stuck-btn');
+    if (stuckBtn) stuckBtn.onclick = switchTurn;
+    
+    const offerAccept = document.getElementById('offer-accept');
+    if (offerAccept) offerAccept.onclick = () => respondToOffer('accept');
+    
+    const offerDecline = document.getElementById('offer-decline');
+    if (offerDecline) offerDecline.onclick = () => respondToOffer('decline');
 
-    document.getElementById('inline-solve-input').addEventListener('keyup', (e) => {
-        if (e.key === 'Enter') {
-            submitInlineBonusSolve();
-        }
-    });
+    const solveInput = document.getElementById('solve-input');
+    if (solveInput) {
+        solveInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') {
+                const confirmBtn = document.querySelector('#modal-buttons button');
+                if (confirmBtn) confirmBtn.click();
+            }
+        });
+    }
+
+    const inlineSolveInput = document.getElementById('inline-solve-input');
+    if (inlineSolveInput) {
+        inlineSolveInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') submitInlineBonusSolve();
+        });
+    }
 });
 
 async function ensurePlayerName() {
     if (!myPlayerName) {
         myPlayerName = await showModal({ title: 'Üdvözöljük!', text: 'Adja meg a nevét:', showInput: true, showCancel: false }) || 'Játékos 1';
-        localStorage.setItem('bekebeli_player_name', myPlayerName);
     }
     gameState.players[0].name = myPlayerName;
     document.getElementById('p1-name').textContent = myPlayerName;
 }
 
-async function fetchPuzzles() {
-    try {
-        const res = await fetch(WORKER_URL + "/puzzles");
-        if (res.ok) {
-            const data = await res.json();
-            if (data && data.length) {
-                basePuzzles = data;
-            }
-        }
-    } catch(e) {}
-}
-
-// =====================================================================
-// 🏠 LOBBY ÉS SZOBÁK (KIZÁRÓLAG FELHŐALAPÚ 4 JEGYŰ SZOBAKÓDDAL)
-// =====================================================================
 async function startSoloGame() {
     await ensurePlayerName();
     document.getElementById('lobby-overlay').style.display = 'none';
@@ -614,34 +701,57 @@ function getRandomPuzzle(list) {
 
 async function createOnlineDuelRoom() {
     await ensurePlayerName();
-    document.getElementById('lobby-overlay').style.display = 'none';
     myPlayerIndex = 0;
     isSpectator = false;
     gameState.mode = 'online_duel';
     gameState.players[1].name = 'Várakozás ellenfélre...';
-    const puz = getRandomPuzzle(basePuzzles);
-    const fallbackCode = Math.floor(1000 + Math.random() * 9000).toString();
     
+    roomCode = Math.floor(1000 + Math.random() * 9000).toString();
+    const puz = getRandomPuzzle(basePuzzles);
+
+    const initialRoomData = {
+        code: roomCode,
+        createdDate: getTodayDateString(),
+        p1: myPlayerName,
+        p2: "Várakozás ellenfélre...",
+        spectatorsCount: 0,
+        status: "waiting",
+        activePlayerIndex: 0,
+        gamePhase: "IDLE",
+        round: 1,
+        scores: [0, 0],
+        totalScores: [0, 0],
+        currentPuzzle: puz,
+        guessedLetters: [],
+        vowelCount: 0,
+        currentSpinValue: null,
+        spinPower: 0.5,
+        spinStartTime: null,
+        spinDuration: 0,
+        spinStartRotation: 0,
+        spinTargetRotation: 0,
+        spinInitiator: 0,
+        hostMessage: `Szoba létrehozva! Kód: <strong>${roomCode}</strong>. Várakozás az ellenfélre...`,
+        updatedAt: Date.now()
+    };
+
     try {
-        const res = await fetch(WORKER_URL + "/api/room/create", {
-            method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ playerName: myPlayerName, isSolo: false, puzzle: puz })
-        });
-        if (res.ok) {
-            const data = await res.json();
-            roomCode = data.code || fallbackCode;
-        } else {
-            roomCode = fallbackCode;
+        const resData = await fbPut(`rooms/${roomCode}`, initialRoomData);
+        if (resData && resData.error) {
+            alert("⚠️ Firebase Hiba: " + JSON.stringify(resData.error));
+            return;
         }
     } catch(e) {
-        roomCode = fallbackCode;
+        alert("⚠️ Hálózati Hiba: " + e.message);
+        return;
     }
 
+    document.getElementById('lobby-overlay').style.display = 'none';
     document.getElementById('hud-p2').style.display = 'block';
     document.getElementById('waiting-code-display').textContent = roomCode;
     document.getElementById('waiting-overlay').style.display = 'flex';
     updateRoomBadge(roomCode, 0);
-    startPolling();
+    subscribeToFirebaseRoom(roomCode);
 }
 
 async function joinOnlineRoomPrompt(type) {
@@ -652,42 +762,46 @@ async function joinOnlineRoomPrompt(type) {
         isSpectator = true;
     }
 
-    const inputCode = await showModal({ title: type === 'player' ? 'Csatlakozás Párbajhoz' : 'Csatlakozás Nézőként', text: 'Írja be a 4 jegyű felhőalapú szobakódot:', showInput: true });
+    const inputCode = await showModal({ title: type === 'player' ? 'Csatlakozás Párbajhoz' : 'Csatlakozás Nézőként', text: 'Írja be a 4 jegyű szobakódot:', showInput: true });
     if (!inputCode) return;
-    document.getElementById('lobby-overlay').style.display = 'none';
+    
+    const code = inputCode.toString().trim();
     
     try {
+        const room = await fbGet(`rooms/${code}`);
+        if (!room) {
+            alert(`Sajnos nincs '${code}' kódú aktív szoba a felhőben! Ellenőrizze a kódot.`);
+            return;
+        }
+
+        document.getElementById('lobby-overlay').style.display = 'none';
+        roomCode = code;
+        gameState.mode = 'online_duel';
+        document.getElementById('hud-p2').style.display = 'block';
+
         if (type === 'player') {
             myPlayerIndex = 1;
             isSpectator = false;
-            const res = await fetch(WORKER_URL + "/api/room/join", {
-                method: "POST", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ code: inputCode.trim(), playerName: myPlayerName })
+            await fbPatch(`rooms/${code}`, {
+                p2: myPlayerName,
+                status: "playing",
+                hostMessage: `<strong>${myPlayerName}</strong> csatlakozott! Kezdődik a párbaj!`,
+                updatedAt: Date.now()
             });
-            const data = await res.json();
-            if (data.error) { alert(data.message); location.reload(); return; }
-            roomCode = data.code;
-            gameState.mode = 'online_duel';
-            document.getElementById('hud-p2').style.display = 'block';
-            updateRoomBadge(roomCode, data.spectatorsCount || 0);
-            startPolling();
         } else {
             isSpectator = true;
-            const res = await fetch(WORKER_URL + "/api/room/join_spectator", {
-                method: "POST", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ code: inputCode.trim() })
+            const newCount = (room.spectatorsCount || 0) + 1;
+            await fbPatch(`rooms/${code}`, {
+                spectatorsCount: newCount,
+                updatedAt: Date.now()
             });
-            const data = await res.json();
-            if (data.error) { alert(data.message); location.reload(); return; }
-            roomCode = data.code;
-            gameState.mode = 'online_duel';
-            document.getElementById('hud-p2').style.display = 'block';
-            updateRoomBadge(roomCode, data.spectatorsCount || 0);
-            startPolling();
-            syncStateFromRoom(data);
+            room.spectatorsCount = newCount;
         }
+
+        updateRoomBadge(roomCode, room.spectatorsCount || 0);
+        subscribeToFirebaseRoom(roomCode);
     } catch(e) {
-        alert("Szerver csatlakozási hiba! Ellenőrizze a szobakódot."); location.reload();
+        alert("⚠️ Csatlakozási Hiba: " + e.message);
     }
 }
 
@@ -699,33 +813,27 @@ function updateRoomBadge(code, count) {
     document.getElementById('spectator-role-tag').style.display = isSpectator ? 'inline-block' : 'none';
 }
 
-// =====================================================================
-// 📡 ONLINE SZINKRONIZÁCIÓ
-// =====================================================================
-function startPolling() {
-    if (pollInterval) clearInterval(pollInterval);
-    if (gameState.mode === 'solo') return;
+function subscribeToFirebaseRoom(code) {
+    if (roomListenerRef) roomListenerRef.off();
     
-    pollInterval = setInterval(async () => {
-        if (!roomCode || isLocalActionPending) return;
-        try {
-            const res = await fetch(`${WORKER_URL}/api/room/poll?code=${roomCode}`);
-            if (res.status === 404) { clearInterval(pollInterval); alert("A szoba megszűnt."); location.reload(); return; }
-            const room = await res.json();
-            
-            if (room.status === "playing" && document.getElementById('waiting-overlay').style.display !== 'none') {
-                document.getElementById('waiting-overlay').style.display = 'none';
-                AudioEngine.playFanfare();
-                initRound(1, room.currentPuzzle);
-            }
-            syncStateFromRoom(room);
-        } catch (e) {}
-    }, 150);
+    roomListenerRef = db.ref('rooms/' + code);
+    roomListenerRef.on('value', (snapshot) => {
+        if (!snapshot.exists()) {
+            alert("A szoba megszűnt.");
+            location.reload();
+            return;
+        }
+        const room = snapshot.val();
+        if (room.status === "playing" && document.getElementById('waiting-overlay').style.display !== 'none') {
+            document.getElementById('waiting-overlay').style.display = 'none';
+            AudioEngine.playFanfare();
+            initRound(1, room.currentPuzzle);
+        }
+        syncStateFromRoom(room);
+    });
 }
 
 function syncStateFromRoom(room) {
-    if (isLocalActionPending) return;
-
     if (room.spectatorsCount !== undefined) {
         document.getElementById('badge-spectators').textContent = room.spectatorsCount;
         document.getElementById('spectator-count').textContent = `👀 Nézők: ${room.spectatorsCount}`;
@@ -763,12 +871,7 @@ function syncStateFromRoom(room) {
         wheelSegments = getWheelForRound(gameState.round);
         drawWheel();
         document.getElementById('round-display').textContent = gameState.round === 4 ? 'FŐDÍJ JÁTÉK' : `Forduló: ${gameState.round}/3`;
-        
-        if (gameState.round === 4) {
-            document.getElementById('vowel-cost-display').style.display = 'none';
-        } else {
-            document.getElementById('vowel-cost-display').style.display = 'inline-block';
-        }
+        document.getElementById('vowel-cost-display').style.display = gameState.round === 4 ? 'none' : 'inline-block';
     }
 
     if (room.gamePhase === 'SPINNING') {
@@ -784,8 +887,10 @@ function syncStateFromRoom(room) {
     } else {
         if (!gameState.spinInProgress && room.spinTargetRotation !== undefined) {
             const wheelEl = document.getElementById('wheel');
-            wheelEl.style.transition = 'none';
-            wheelEl.style.transform = `rotate(${room.spinTargetRotation}deg)`;
+            if (wheelEl) {
+                wheelEl.style.transition = 'none';
+                wheelEl.style.transform = `rotate(${room.spinTargetRotation}deg)`;
+            }
             gameState.currentRotation = room.spinTargetRotation;
         }
         gameState.phase = room.gamePhase || 'IDLE';
@@ -839,60 +944,45 @@ function isLetterFullyRevealedOnBoard(letter) {
     return Array.from(tiles).every(t => t.classList.contains('revealed'));
 }
 
-async function pushStateToWorker() {
+async function pushStateToFirebase() {
     if (!roomCode || isSpectator || gameState.mode === 'solo') return;
-    isLocalActionPending = true;
     try {
-        await fetch(WORKER_URL + "/api/room/action", {
-            method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                code: roomCode,
-                newState: {
-                    scores: [gameState.players[0].score, gameState.players[1].score],
-                    totalScores: [gameState.players[0].totalScore, gameState.players[1].totalScore],
-                    activePlayerIndex: gameState.activePlayerIndex,
-                    gamePhase: gameState.phase,
-                    round: gameState.round,
-                    guessedLetters: gameState.guessedLetters,
-                    vowelCount: gameState.vowelCount,
-                    currentPuzzle: gameState.currentPuzzle,
-                    hostMessage: gameState.hostMessage,
-                    currentSpinValue: gameState.currentSpinValue,
-                    spinPower: gameState.spinPower,
-                    spinStartTime: gameState.spinStartTime,
-                    spinDuration: gameState.spinDuration,
-                    spinStartRotation: gameState.spinStartRotation,
-                    spinTargetRotation: gameState.currentRotation,
-                    spinInitiator: gameState.spinInitiator,
-                    bonusPickedConsonants: gameState.bonusPickedConsonants,
-                    bonusPickedVowel: gameState.bonusPickedVowel,
-                    bonusEndTime: gameState.bonusEndTime,
-                    pendingOffer: gameState.pendingOffer,
-                    offerResponse: gameState.offerResponse
-                }
-            })
+        await db.ref('rooms/' + roomCode).update({
+            scores: [gameState.players[0].score, gameState.players[1].score],
+            totalScores: [gameState.players[0].totalScore, gameState.players[1].totalScore],
+            activePlayerIndex: gameState.activePlayerIndex,
+            gamePhase: gameState.phase,
+            round: gameState.round,
+            guessedLetters: gameState.guessedLetters,
+            vowelCount: gameState.vowelCount,
+            currentPuzzle: gameState.currentPuzzle,
+            hostMessage: gameState.hostMessage,
+            currentSpinValue: gameState.currentSpinValue,
+            spinPower: gameState.spinPower,
+            spinStartTime: gameState.spinStartTime,
+            spinDuration: gameState.spinDuration,
+            spinStartRotation: gameState.spinStartRotation,
+            spinTargetRotation: gameState.currentRotation,
+            spinInitiator: gameState.spinInitiator,
+            bonusPickedConsonants: gameState.bonusPickedConsonants,
+            bonusPickedVowel: gameState.bonusPickedVowel,
+            bonusEndTime: gameState.bonusEndTime,
+            pendingOffer: gameState.pendingOffer,
+            offerResponse: gameState.offerResponse,
+            updatedAt: Date.now()
         });
     } catch(e) {}
-    finally {
-        setTimeout(() => { isLocalActionPending = false; }, 200);
-    }
 }
 
 async function exitRoomAndReturnLobby() {
-    if (roomCode && !isSpectator) {
+    if (roomCode && !isSpectator && gameState.mode !== 'solo') {
         try {
-            await fetch(WORKER_URL + "/api/room/delete", {
-                method: "POST", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ code: roomCode })
-            });
+            await db.ref('rooms/' + roomCode).remove();
         } catch(e) {}
     }
     location.reload();
 }
 
-// =====================================================================
-// 🎯 KÖRÖK MŰKÖDÉSE (3. KÖRBEN "MINDEGYIK FORINT KOCKÁN VAN")
-// =====================================================================
 function initRound(roundNum, puzzle) {
     gameState.round = roundNum;
     gameState.guessedLetters = [];
@@ -901,7 +991,6 @@ function initRound(roundNum, puzzle) {
     gameState.phase = 'IDLE';
     gameState.currentPuzzle = puzzle;
     
-    // 3. FORDULÓ: AZ ADDTIG ÖSSZEGYŰJTÖTT TELJES KASSZA ÁTKERÜL A PONTOKBA!
     if (roundNum === 3) {
         gameState.players[0].score = gameState.players[0].totalScore;
         gameState.players[0].totalScore = 0;
@@ -937,7 +1026,7 @@ function initRound(roundNum, puzzle) {
     updateHostMessage(`A(z) ${roundNum}. forduló elkezdődött!${round3Notice} <strong>${getActivePlayer().name}</strong> következik${bonusText}!`);
     
     updateUI();
-    pushStateToWorker();
+    pushStateToFirebase();
 
     checkAITurn();
 }
@@ -958,7 +1047,7 @@ function switchTurn() {
     gameState.superDoubleActive = false;
 
     updateHostMessage(`Következő játékos: <strong>${getActivePlayer().name}</strong>.`);
-    pushStateToWorker();
+    pushStateToFirebase();
     updateUI();
 
     checkAITurn();
@@ -974,9 +1063,6 @@ function stopBooster() {
     document.getElementById('booster-bar-inner').style.width = '0%';
 }
 
-// =====================================================================
-// 🎡 KERÉKFIZIKA – IDŐ-SZINKRONIZÁLT PÖRGETÉS
-// =====================================================================
 function autoSpin(power = 0.5) {
     if (gameState.spinInProgress) return;
     if (gameState.phase !== 'IDLE') return;
@@ -1004,7 +1090,7 @@ function autoSpin(power = 0.5) {
     gameState.currentRotation = targetRotation;
     gameState.spinInitiator = (gameState.mode === 'solo' && gameState.activePlayerIndex === 1) ? 1 : myPlayerIndex;
 
-    pushStateToWorker();
+    pushStateToFirebase();
     executeSyncedSpin(startRot, targetRotation, startTime, duration, gameState.spinInitiator, targetSegIndex);
 }
 
@@ -1060,28 +1146,30 @@ function executeSyncedSpin(startRotation, endRotation, startTime, duration, init
         const ease = 1 - Math.pow(1 - progress, 4);
         const currentPos = startRotation + totalDelta * ease;
         
-        wheelEl.style.transform = `rotate(${currentPos}deg)`;
+        if (wheelEl) wheelEl.style.transform = `rotate(${currentPos}deg)`;
 
         const currentSeg = Math.floor(currentPos / segAngle);
         if (currentSeg !== lastSeg) {
             lastSeg = currentSeg;
             AudioEngine.playTick();
-            pointerEl.style.transition = 'transform 0.06s';
-            pointerEl.style.transform = `translateX(-50%) rotate(-12deg)`;
-            setTimeout(() => {
-                pointerEl.style.transform = `translateX(-50%) rotate(0deg)`;
-            }, 80);
+            if (pointerEl) {
+                pointerEl.style.transition = 'transform 0.06s';
+                pointerEl.style.transform = `translateX(-50%) rotate(-12deg)`;
+                setTimeout(() => {
+                    pointerEl.style.transform = `translateX(-50%) rotate(0deg)`;
+                }, 80);
+            }
         }
 
         if (progress < 1) {
             activeSpinAnimation = requestAnimationFrame(animateFrame);
         } else {
-            wheelEl.style.transform = `rotate(${endRotation}deg)`;
+            if (wheelEl) wheelEl.style.transform = `rotate(${endRotation}deg)`;
             gameState.currentRotation = endRotation;
             gameState.spinInProgress = false;
             activeSpinAnimation = null;
             AudioEngine.playLand();
-            pointerEl.style.transform = `translateX(-50%) rotate(0deg)`;
+            if (pointerEl) pointerEl.style.transform = `translateX(-50%) rotate(0deg)`;
 
             if (!isSpectator && (gameState.mode === 'solo' || initiatorIndex === myPlayerIndex)) {
                 let landedSeg = null;
@@ -1103,9 +1191,6 @@ function executeSyncedSpin(startRotation, endRotation, startTime, duration, init
     activeSpinAnimation = requestAnimationFrame(animateFrame);
 }
 
-// =====================================================================
-// 🎯 PÖRGETÉS EREDMÉNY KEZELÉSE
-// =====================================================================
 async function handleSpinResult(seg) {
     const active = getActivePlayer();
     const other = gameState.players[gameState.activePlayerIndex === 0 ? 1 : 0];
@@ -1115,7 +1200,7 @@ async function handleSpinResult(seg) {
         const hintText = gameState.currentPuzzle?.hint || `Ez a feladvány a(z) ${gameState.currentPuzzle?.category} kategóriába tartozik.`;
         updateHostMessage(`💡 <strong>SEGÍTSÉG / UTALÁS:</strong> "${hintText}"`);
         gameState.phase = 'IDLE';
-        pushStateToWorker();
+        pushStateToFirebase();
         updateUI();
         if (gameState.mode === 'solo' && gameState.activePlayerIndex === 1) setTimeout(checkAITurn, 2000);
         return;
@@ -1125,7 +1210,7 @@ async function handleSpinResult(seg) {
         if (active.score <= 0) {
             updateHostMessage(`⚡ <strong>DUPLA VAGY SEMMI</strong> – nincs mit duplázni (0 Ft)! Újrapörgetés...`, true);
             gameState.phase = 'IDLE';
-            pushStateToWorker();
+            pushStateToFirebase();
             updateUI();
             setTimeout(() => {
                 if (!gameState.spinInProgress && gameState.phase === 'IDLE') {
@@ -1137,7 +1222,7 @@ async function handleSpinResult(seg) {
         gameState.doubleOrNothingActive = true;
         gameState.phase = 'AWAITING_CONSONANT';
         updateHostMessage(`⚡ <strong>DUPLA VAGY SEMMI!</strong> Válasszon mássalhangzót! Ha jó: DUPLA PONT! Ha hibás: 0 FT ÉS ELVESZÍTI A KÖRT!`);
-        pushStateToWorker(); updateUI();
+        pushStateToFirebase(); updateUI();
         if (gameState.mode === 'solo' && gameState.activePlayerIndex === 1) setTimeout(aiPickConsonant, 1500);
         return;
     }
@@ -1165,7 +1250,7 @@ async function handleSpinResult(seg) {
         if (active.score <= 0) {
             updateHostMessage(`🌟 <strong>SZUPER DUPLÁZÓ</strong> – nincs mit duplázni (0 Ft)! Újrapörgetés...`, true);
             gameState.phase = 'IDLE';
-            pushStateToWorker();
+            pushStateToFirebase();
             updateUI();
             setTimeout(() => {
                 if (!gameState.spinInProgress && gameState.phase === 'IDLE') {
@@ -1185,7 +1270,7 @@ async function handleSpinResult(seg) {
             gameState.superDoubleActive = true;
             gameState.phase = 'AWAITING_CONSONANT';
             updateHostMessage(`🌟 <strong>SZUPER DUPLÁZÓ!</strong> Válasszon mássalhangzót! Ha jó: A fordulós pontszám MEGDUPLÁZÓDIK!`);
-            pushStateToWorker(); updateUI();
+            pushStateToFirebase(); updateUI();
             if (gameState.mode === 'solo' && gameState.activePlayerIndex === 1) setTimeout(aiPickConsonant, 1500);
         }
         return;
@@ -1196,14 +1281,14 @@ async function handleSpinResult(seg) {
             gameState.currentSpinValue = 500;
             gameState.phase = 'AWAITING_CONSONANT';
             updateHostMessage(`Kipörgetett érték: 500 Ft! Válasszon egy mássalhangzót!`);
-            pushStateToWorker(); updateUI();
+            pushStateToFirebase(); updateUI();
             if (gameState.mode === 'solo' && gameState.activePlayerIndex === 1) setTimeout(aiPickConsonant, 1500);
             return;
         }
         if (other.totalScore <= 0) {
             updateHostMessage(`🤝 <strong>ALKU!</strong> – Az ellenfélnek nincs pénze, így az alku nem lehetséges. Pörgess újra!`, true);
             gameState.phase = 'IDLE';
-            pushStateToWorker();
+            pushStateToFirebase();
             updateUI();
             setTimeout(() => {
                 if (!gameState.spinInProgress && gameState.phase === 'IDLE') {
@@ -1223,20 +1308,20 @@ async function handleSpinResult(seg) {
         if (!amountStr) {
             gameState.phase = 'IDLE';
             updateHostMessage(`Alku elutasítva.`);
-            pushStateToWorker(); updateUI();
+            pushStateToFirebase(); updateUI();
             return;
         }
         const amount = parseInt(amountStr);
         if (isNaN(amount) || amount <= 0 || amount > maxAmount) {
             updateHostMessage(`⚠️ Érvénytelen összeg! (0 és ${maxAmount.toLocaleString()} Ft között kell lennie)`, true);
             gameState.phase = 'IDLE';
-            pushStateToWorker(); updateUI();
+            pushStateToFirebase(); updateUI();
             return;
         }
         gameState.pendingOffer = { from: myPlayerIndex, amount: amount };
         gameState.offerResponse = null;
         updateHostMessage(`🤝 Alku ajánlat küldve: ${amount.toLocaleString()} Ft ${other.name} felé. Várakozás a válaszra...`);
-        pushStateToWorker();
+        pushStateToFirebase();
         updateUI();
         return;
     }
@@ -1247,7 +1332,7 @@ async function handleSpinResult(seg) {
         other.totalScore = temp;
         updateHostMessage(`🔄 <strong>CSERE!</strong> ${active.name} és ${other.name} kicserélték a kasszáikat!`);
         AudioEngine.playFanfare();
-        pushStateToWorker();
+        pushStateToFirebase();
         updateUI();
         setTimeout(switchTurn, 2000);
         return;
@@ -1258,7 +1343,7 @@ async function handleSpinResult(seg) {
         if (opponentBank <= 0) {
             updateHostMessage(`💰 <strong>RABLÁS!</strong> – Az ellenfélnek nincs pénze (0 Ft), amit el lehetne rabolni! Újrapörgetés...`, true);
             gameState.phase = 'IDLE';
-            pushStateToWorker();
+            pushStateToFirebase();
             updateUI();
             setTimeout(() => {
                 if (!gameState.spinInProgress && gameState.phase === 'IDLE') {
@@ -1279,7 +1364,7 @@ async function handleSpinResult(seg) {
         updateHostMessage(`💰 <strong>RABLÁS!</strong> ${active.name} elrabolta ${other.name} összes pénzét (${opponentBank.toLocaleString()} Ft)! Pörgess újra!`);
         AudioEngine.playFanfare();
         gameState.phase = 'IDLE';
-        pushStateToWorker();
+        pushStateToFirebase();
         updateUI();
         if (gameState.mode === 'solo' && gameState.activePlayerIndex === 1) setTimeout(checkAITurn, 2000);
         return;
@@ -1289,15 +1374,13 @@ async function handleSpinResult(seg) {
     gameState.currentSpinValue = parseInt(seg.value) || 500;
     gameState.phase = 'AWAITING_CONSONANT';
     updateHostMessage(`Kipörgetett érték: <strong>${seg.value} Ft</strong>! Válasszon egy mássalhangzót!`);
-    pushStateToWorker(); updateUI();
+    pushStateToFirebase(); updateUI();
     if (gameState.mode === 'solo' && gameState.activePlayerIndex === 1) setTimeout(aiPickConsonant, 1500);
 }
 
-// =====================================================================
-// 🔤 BETŰ TIPPELÉS ÉS FELFEDÉS
-// =====================================================================
 function triggerRedStrobe() {
     const screenEl = document.getElementById('screen');
+    if (!screenEl) return;
     screenEl.classList.remove('strobe-red');
     void screenEl.offsetWidth;
     screenEl.classList.add('strobe-red');
@@ -1369,7 +1452,7 @@ function processConsonantGuess(letter) {
         revealMatchingTilesAnimated(letter, () => {
             renderGuessedLettersDirect();
             if (!checkPuzzleSolvedAuto()) {
-                pushStateToWorker();
+                pushStateToFirebase();
                 updateUI();
                 checkAITurn();
             }
@@ -1403,7 +1486,7 @@ function processVowelGuess(letter) {
         revealMatchingTilesAnimated(letter, () => {
             renderGuessedLettersDirect();
             if (!checkPuzzleSolvedAuto()) {
-                pushStateToWorker();
+                pushStateToFirebase();
                 updateUI();
                 checkAITurn();
             }
@@ -1500,9 +1583,6 @@ function verifyAndExecuteSolve(attemptText) {
     }
 }
 
-// =====================================================================
-// 🤖 ROBOT ELLENFÉL
-// =====================================================================
 function checkAITurn() {
     if (gameState.mode === 'solo' && gameState.activePlayerIndex === 1 && !gameState.spinInProgress) {
         if (gameState.phase === 'IDLE') {
@@ -1563,9 +1643,6 @@ function aiPickConsonant() {
     }
 }
 
-// =====================================================================
-// 🌟 FŐDÍJ JÁTÉK
-// =====================================================================
 function startMainPrizeRound() {
     gameState.round = 4;
     const mainPuzzle = getRandomPuzzle(basePuzzles);
@@ -1584,7 +1661,7 @@ function startMainPrizeRound() {
 
     const active = getActivePlayer();
     updateHostMessage(`🌟 FŐDÍJ JÁTÉK! <strong>${active.name}</strong> választ 5 mássalhangzót és 1 magánhangzót!`);
-    pushStateToWorker();
+    pushStateToFirebase();
     updateUI();
 
     checkAITurn();
@@ -1620,7 +1697,7 @@ function handleBonusLetterSelection(letter) {
     gameState.guessedLetters = allGuessed;
     renderGuessedLettersDirect();
 
-    pushStateToWorker();
+    pushStateToFirebase();
 
     const cCount = gameState.bonusPickedConsonants.length;
     const vCount = gameState.bonusPickedVowel ? 1 : 0;
@@ -1705,7 +1782,7 @@ function triggerBonusClockStart() {
 
     gameState.bonusEndTime = Date.now() + 30000;
     gameState.phase = 'BONUS_COUNTDOWN';
-    pushStateToWorker();
+    pushStateToFirebase();
     startClientBonusTimer(gameState.bonusEndTime);
 }
 
@@ -1756,7 +1833,7 @@ function startClientBonusTimer(endTime) {
                 triggerRedStrobe();
             } else {
                 updateHostMessage(`A játékosnak sajnos lejárt az idő! Nyereménye: 0 Ft.`);
-                if (!isSpectator) pushStateToWorker();
+                if (!isSpectator) pushStateToFirebase();
             }
             setTimeout(() => {
                 exitRoomAndReturnLobby();
@@ -1787,9 +1864,9 @@ function completeBonusRoundWin() {
     document.querySelectorAll('.puzzle-tile[data-letter]').forEach(t => t.classList.add('revealed'));
 
     gameState.phase = 'BONUS_OVER';
-    pushStateToWorker();
+    pushStateToFirebase();
 
-    saveLeaderboardScore(active.name, active.totalScore);
+    saveLeaderboardScoreFirebase(active.name, active.totalScore);
 
     setTimeout(async () => {
         await finishGame();
@@ -1819,9 +1896,6 @@ async function runAIBonusRound() {
     if (pickedVow) handleBonusLetterSelection(pickedVow);
 }
 
-// =====================================================================
-// 🏆 KÖR ÉS JÁTÉK LEZÁRÁSA
-// =====================================================================
 function completeRoundWin() {
     if (gameState.phase === 'ROUND_OVER') return;
     AudioEngine.playFanfare();
@@ -1829,8 +1903,6 @@ function completeRoundWin() {
     const roundBonus = ROUND_WIN_BONUSES[gameState.round] || 0;
     
     const roundTotalEarned = winner.score + roundBonus;
-    
-    // NYEREMÉNY ÁTKERÜL A KASSZÁBA (TOTALSCORE)
     winner.totalScore += roundTotalEarned;
     
     gameState.phase = 'ROUND_OVER';
@@ -1839,7 +1911,7 @@ function completeRoundWin() {
 
     const isHost = (gameState.mode === 'solo' || myPlayerIndex === 0);
 
-    pushStateToWorker();
+    pushStateToFirebase();
 
     setTimeout(async () => {
         if (!isHost) return;
@@ -1857,12 +1929,9 @@ function completeRoundWin() {
     }, 3500);
 }
 
-// =====================================================================
-// ♠️ 21-ES KASZINÓ + TOPLISTA
-// =====================================================================
 async function finishGame() {
     const p1 = gameState.players[0];
-    saveLeaderboardScore(p1.name, p1.totalScore);
+    saveLeaderboardScoreFirebase(p1.name, p1.totalScore);
 
     if (p1.totalScore > 0 && isMyTurn() && !isSpectator) {
         const wantBJ = await showModal({
@@ -1884,6 +1953,9 @@ async function finishGame() {
 function runProportionalBlackjackGame(player) {
     const bjModal = document.getElementById('blackjack-modal');
     bjModal.classList.add('visible');
+
+    document.getElementById('bj-hit-btn').disabled = false;
+    document.getElementById('bj-stand-btn').disabled = false;
 
     let deck = createDeck();
     let playerCards = [drawCard(deck), drawCard(deck)];
@@ -1951,95 +2023,59 @@ function runProportionalBlackjackGame(player) {
     }
 }
 
-function getWeekStart(date) {
-    const d = new Date(date);
-    const day = d.getDay();
-    const diff = (day === 0 ? 6 : day - 1);
-    d.setDate(d.getDate() - diff);
-    d.setHours(0, 0, 0, 0);
-    return d;
-}
-
-function saveLeaderboardScore(name, score) {
+async function saveLeaderboardScoreFirebase(name, score) {
     if (!name || score <= 0 || isSpectator) return;
     
-    const now = new Date();
-    const weekStart = getWeekStart(now);
-    
-    let localLb = [];
-    try { localLb = JSON.parse(localStorage.getItem('bekebeli_leaderboard')) || []; } catch(e) {}
-    
-    const existingIdx = localLb.findIndex(x => x.name === name && x.weekStart === weekStart.toISOString());
-    if (existingIdx >= 0) {
-        if (score > localLb[existingIdx].score) {
-            localLb[existingIdx].score = score;
-            localLb[existingIdx].date = now.toISOString();
-        }
-    } else {
-        localLb.push({ 
-            name, 
-            score, 
-            date: now.toISOString(),
-            weekStart: weekStart.toISOString()
-        });
-    }
-    localLb = localLb.filter(x => x.weekStart === weekStart.toISOString());
-    localLb.sort((a,b) => b.score - a.score);
-    localStorage.setItem('bekebeli_leaderboard', JSON.stringify(localLb));
+    const weekId = getWeeklyId();
+    const cleanKey = name.replace(/[^a-zA-Z0-9]/g, '_');
 
     try {
-        fetch(WORKER_URL + "/api/leaderboard", {
-            method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name, score })
+        const existingData = await fbGet(`leaderboard/${cleanKey}`);
+        let currentTotal = 0;
+
+        if (existingData && existingData.weekId === weekId) {
+            currentTotal = existingData.score || 0;
+        }
+
+        const newTotal = currentTotal + score;
+        await fbPut(`leaderboard/${cleanKey}`, {
+            name: name,
+            score: newTotal,
+            weekId: weekId,
+            updatedAt: Date.now()
         });
     } catch(e) {}
 }
 
 async function showLeaderboard() {
-    let lb = [];
-    let localLb = [];
-    try { localLb = JSON.parse(localStorage.getItem('bekebeli_leaderboard')) || []; } catch(e) {}
+    const weekId = getWeeklyId();
+    let lbList = [];
 
     try {
-        const res = await fetch(WORKER_URL + "/api/leaderboard");
-        if (res.ok) {
-            const workerLb = await res.json();
-            if (localLb.length === 0) {
-                lb = workerLb.map(item => ({ ...item, weekStart: null }));
-            } else {
-                lb = workerLb.map(w => {
-                    const local = localLb.find(l => l.name === w.name);
-                    return local ? { ...w, weekStart: local.weekStart } : { ...w, weekStart: null };
-                });
-            }
+        const lbData = await fbGet('leaderboard');
+        if (lbData) {
+            Object.keys(lbData).forEach(key => {
+                const item = lbData[key];
+                if (item && item.weekId === weekId) {
+                    lbList.push(item);
+                }
+            });
         }
     } catch(e) {}
 
-    if ((!lb || lb.length === 0) && localLb.length > 0) {
-        lb = localLb;
-    }
-
-    const now = new Date();
-    const currentWeekStart = getWeekStart(now);
-    let weeklyWinner = null;
-    let maxScore = -1;
-    lb.forEach(item => {
-        if (item.weekStart === currentWeekStart.toISOString()) {
-            if (item.score > maxScore) {
-                maxScore = item.score;
-                weeklyWinner = item.name;
-            }
-        }
-    });
+    lbList.sort((a, b) => b.score - a.score);
 
     let html = '<ol style="padding-left:20px;">';
-    if (lb && lb.length) {
-        lb.forEach((item, i) => {
-            const crown = (item.name === weeklyWinner) ? '👑 ' : '';
+    if (lbList.length > 0) {
+        lbList.forEach((item, i) => {
+            const crown = (i === 0) ? '👑 ' : '';
             html += `<li style="margin-bottom:6px;">${crown}<strong>${item.name}</strong>: <span style="color:var(--gold-color);">${item.score.toLocaleString()} Ft</span></li>`;
         });
-    } else html += '<li>Még nincs regisztrált eredmény.</li>';
+    } else {
+        html += '<li>Még nincs regisztrált heti eredmény.</li>';
+    }
     html += '</ol>';
+
     document.getElementById('leaderboard-list').innerHTML = html;
     document.getElementById('leaderboard-modal').classList.add('visible');
 }
@@ -2065,9 +2101,6 @@ function calculateBJScore(cards) {
     return score;
 }
 
-// =====================================================================
-// ALKU! VÁLASZ
-// =====================================================================
 async function respondToOffer(response) {
     if (!gameState.pendingOffer || isSpectator) return;
     const offer = gameState.pendingOffer;
@@ -2092,14 +2125,11 @@ async function respondToOffer(response) {
     gameState.offerResponse = response;
     document.getElementById('offer-modal').classList.remove('visible');
     gameState.phase = 'IDLE';
-    pushStateToWorker();
+    pushStateToFirebase();
     updateUI();
     checkAITurn();
 }
 
-// =====================================================================
-// 🖼️ UI ÉS TÁBLA KIRAJZOLÁS
-// =====================================================================
 function updateUI() {
     document.getElementById('p1-name').textContent = gameState.players[0].name;
     document.getElementById('p2-name').textContent = gameState.players[1].name;
@@ -2248,15 +2278,20 @@ function updateAlphabetUI() {
 function updateHostMessage(msg, isImportant = false) {
     gameState.hostMessage = msg;
     const el = document.getElementById('host-message');
+    if (!el) return;
     el.innerHTML = msg;
     el.style.borderColor = isImportant ? 'var(--gold-color)' : 'rgba(244, 233, 216, 0.4)';
 }
 
-// =====================================================================
-// 🎨 KERÉK GRAFIKA
-// =====================================================================
 function drawWheel() {
-    const svg = document.getElementById('wheel'); svg.innerHTML = '';
+    const svg = document.getElementById('wheel'); 
+    if (!svg) return;
+    svg.innerHTML = '';
+    
+    if (!wheelSegments || wheelSegments.length === 0) {
+        wheelSegments = getWheelForRound(gameState.round || 1);
+    }
+
     const segCount = wheelSegments.length;
     const step = 360 / segCount;
     wheelSegments.forEach((seg, i) => {
@@ -2295,9 +2330,12 @@ function polarToCartesian(cx, cy, r, angleInDegrees) {
 }
 
 function loadEditorWheelForRound() {
-    const r = document.getElementById('editor-round-select').value;
+    const select = document.getElementById('editor-round-select');
+    if (!select) return;
+    const r = select.value;
     const segs = getWheelForRound(r);
     const container = document.getElementById('editor-segments-container');
+    if (!container) return;
     container.innerHTML = '';
 
     segs.forEach((seg) => {
@@ -2315,6 +2353,7 @@ function loadEditorWheelForRound() {
 
 function addEditorSegmentRow() {
     const container = document.getElementById('editor-segments-container');
+    if (!container) return;
     const row = document.createElement('div');
     row.className = 'editor-row';
     row.innerHTML = `
@@ -2327,7 +2366,9 @@ function addEditorSegmentRow() {
 }
 
 function saveCustomWheelConfig() {
-    const r = document.getElementById('editor-round-select').value;
+    const select = document.getElementById('editor-round-select');
+    if (!select) return;
+    const r = select.value;
     const rows = document.querySelectorAll('#editor-segments-container .editor-row');
     let newSegs = [];
 
@@ -2340,53 +2381,18 @@ function saveCustomWheelConfig() {
         if (label) newSegs.push({ label, value: val, color });
     });
 
-    let custom = {};
-    try { custom = JSON.parse(localStorage.getItem('bekebeli_custom_wheels')) || {}; } catch(e) {}
-    custom[r] = newSegs;
-    localStorage.setItem('bekebeli_custom_wheels', JSON.stringify(custom));
-
     if (gameState.round == r) {
         wheelSegments = newSegs;
         drawWheel();
     }
 
-    alert(`A(z) ${r}. forduló kereke sikeresen elmentve!`);
-}
-
-// =====================================================================
-// 🛠️ MODALOK ÉS FEJLESZTŐI MÓD
-// =====================================================================
-function showModal({ title, text, showInput = false, confirmText = 'Rendben', cancelText = 'Mégse', showCancel = true }) {
-    return new Promise(resolve => {
-        const modal = document.getElementById('custom-modal');
-        const btnContainer = document.getElementById('modal-buttons');
-        const input = document.getElementById('solve-input');
-        btnContainer.innerHTML = '';
-        document.getElementById('modal-title').textContent = title;
-        document.getElementById('modal-text').innerHTML = text;
-        input.style.display = showInput ? 'block' : 'none';
-        if (showInput) {
-            input.value = '';
-            setTimeout(() => input.focus(), 100);
-        }
-
-        const confirmBtn = document.createElement('button');
-        confirmBtn.className = 'action-btn'; confirmBtn.textContent = confirmText;
-        confirmBtn.onclick = () => { modal.classList.remove('visible'); resolve(showInput ? input.value : true); };
-        btnContainer.appendChild(confirmBtn);
-
-        if (showCancel) {
-            const cancelBtn = document.createElement('button');
-            cancelBtn.className = 'action-btn'; cancelBtn.style.background = '#607d8b'; cancelBtn.style.color = 'white'; cancelBtn.textContent = cancelText;
-            cancelBtn.onclick = () => { modal.classList.remove('visible'); resolve(false); };
-            btnContainer.appendChild(cancelBtn);
-        }
-        modal.classList.add('visible');
-    });
+    alert(`A(z) ${r}. forduló kereke frissítve!`);
 }
 
 function setupLogoDev() {
-    document.getElementById('logo-container').onclick = () => {
+    const logoContainer = document.getElementById('logo-container');
+    if (!logoContainer) return;
+    logoContainer.onclick = () => {
         logoClicks++;
         if (logoClicks >= 5) {
             logoClicks = 0;
@@ -2394,20 +2400,34 @@ function setupLogoDev() {
             document.getElementById('dev-modal').classList.add('visible');
         }
     };
-    document.getElementById('dev-close-btn').onclick = () => document.getElementById('dev-modal').classList.remove('visible');
-    document.getElementById('dev-reveal-btn').onclick = () => {
-        document.querySelectorAll('.puzzle-tile[data-letter]').forEach(t => t.classList.add('revealed'));
-        document.getElementById('dev-modal').classList.remove('visible');
-    };
-    document.getElementById('dev-clear-scores-btn').onclick = () => {
-        gameState.players[0].score = 0; gameState.players[1].score = 0;
-        gameState.players[0].totalScore = 0; gameState.players[1].totalScore = 0;
-        updateUI(); pushStateToWorker();
-        document.getElementById('dev-modal').classList.remove('visible');
-    };
+    
+    const devCloseBtn = document.getElementById('dev-close-btn');
+    if (devCloseBtn) devCloseBtn.onclick = () => document.getElementById('dev-modal').classList.remove('visible');
+    
+    const devRevealBtn = document.getElementById('dev-reveal-btn');
+    if (devRevealBtn) {
+        devRevealBtn.onclick = () => {
+            document.querySelectorAll('.puzzle-tile[data-letter]').forEach(t => t.classList.add('revealed'));
+            document.getElementById('dev-modal').classList.remove('visible');
+        };
+    }
 }
 
-document.getElementById('solve-button').onclick = solvePuzzle;
+// =====================================================================
+// 🌍 GLOBÁLIS WINDOW KÖTÉSEK (HTML ONCLICK ESEMÉNYEKHEZ)
+// =====================================================================
+window.toggleMute = toggleMute;
+window.showLeaderboard = showLeaderboard;
+window.startSoloGame = startSoloGame;
+window.createOnlineDuelRoom = createOnlineDuelRoom;
+window.joinOnlineRoomPrompt = joinOnlineRoomPrompt;
+window.startBoosterCharge = startBoosterCharge;
+window.solvePuzzle = solvePuzzle;
+window.submitInlineBonusSolve = submitInlineBonusSolve;
+window.exitRoomAndReturnLobby = exitRoomAndReturnLobby;
+window.loadEditorWheelForRound = loadEditorWheelForRound;
+window.addEditorSegmentRow = addEditorSegmentRow;
+window.saveCustomWheelConfig = saveCustomWheelConfig;
 </script>
 </body>
 </html>
