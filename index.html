@@ -265,7 +265,7 @@
             font-size: 1.4rem;
         }
 
-        /* FINOMÍTOTT LÁGY MATT RETRO GOLYÓSOR */
+        /* LÁGY MATT RETRO GOLYÓSOR */
         .luxor-balls-history {
             display: flex;
             gap: 6px;
@@ -708,7 +708,6 @@
 // =====================================================================
 const FIREBASE_DB_URL = "https://szerencsekerek20260807-default-rtdb.europe-west1.firebasedatabase.app";
 
-// EGYEDI FELHŐ JÁTÉKOS AZONOSÍTÓ A NÉV-EGYEZÉS MIATTI KIJAVÍTÁSHOZ
 const myPlayerId = 'p_' + Math.random().toString(36).substr(2, 9);
 
 async function fbPut(path, data) {
@@ -1405,7 +1404,6 @@ function subscribeToFirebaseRoom(code) {
         const room = snapshot.val();
         currentGameType = room.gameType || 'wheel';
 
-        // AZONNALI CSATLAKOZÁS AZ AKTÍV SZOBA ÁLLAPOTÁHOZ
         if (room.status === "playing") {
             const lobbyOverlay = document.getElementById('lobby-overlay');
             const waitingOverlay = document.getElementById('waiting-overlay');
@@ -1439,7 +1437,6 @@ function syncStateFromRoom(room) {
         document.getElementById('spectator-count').textContent = `👀 Nézők: ${room.spectatorsCount}`;
     }
 
-    // PÁRBAJ ÉS KÉT JÁTÉKOS NÉV & SZEREP CSATLAKOZÁS
     gameState.players[0].name = room.p1 || 'Játékos 1';
     gameState.players[1].name = (room.p2 && room.p2 !== "Várakozás ellenfélre...") ? room.p2 : 'Robot (Ödön)';
     
@@ -1447,7 +1444,6 @@ function syncStateFromRoom(room) {
     if (document.getElementById('p2-name')) document.getElementById('p2-name').textContent = gameState.players[1].name;
     if (document.getElementById('hud-p2')) document.getElementById('hud-p2').style.display = 'block';
 
-    // CSATLAKOZÓ SZEREP MEGÁLLAPÍTÁSA EGYEDI ID ALAPJÁN
     if (!isSpectator) {
         if (room.p1Id === myPlayerId) {
             myPlayerIndex = 0;
@@ -3145,7 +3141,6 @@ async function startLuxorGame() {
     let ballIndex = 0;
     if (luxorInterval) clearInterval(luxorInterval);
 
-    // EXACT 10 MÁSODPERCES SORSOLÁS + SZIGORÚ HATÁRSZÁM KORLÁT
     luxorInterval = setInterval(() => {
         if (!luxorGameActive) {
             clearInterval(luxorInterval);
@@ -3177,10 +3172,9 @@ async function startLuxorGame() {
             }, 800);
         }
 
-    }, 10000); // 10 MÁSODPERCENKÉNT!
+    }, 10000); 
 }
 
-// 10-ES GÓLYÓSOR MEGJELENÍTÉSE OSZLOPBETŰKKEL MATT BÉKEBELI STÍLUSBAN
 function renderLuxorBallHistory() {
     const historyContainer = document.getElementById('luxor-balls-history');
     const recentBalls = luxorDrawnBalls.slice(-10);
@@ -3325,398 +3319,398 @@ async function saveLeaderboardScoreFirebase(name, score) {
 
     try {
         const existingData = await fbGet(`leaderboard/${cleanKey}`);
-       let currentTotal = 0;
+        let currentTotal = 0;
 
-            if (existingData && existingData.weekId === weekId) {
-                currentTotal = existingData.score || 0;
-            }
-
-            const newTotal = currentTotal + score;
-            await fbPut(`leaderboard/${cleanKey}`, {
-                name: name,
-                score: newTotal,
-                weekId: weekId,
-                updatedAt: Date.now()
-            });
-        } catch(e) {}
-    }
-
-    async function showLeaderboard() {
-        const weekId = getWeeklyId();
-        let lbList = [];
-
-        try {
-            const lbData = await fbGet('leaderboard');
-            if (lbData) {
-                Object.keys(lbData).forEach(key => {
-                    const item = lbData[key];
-                    if (item && item.weekId === weekId) {
-                        if (item.name && item.name.trim().toUpperCase() !== 'TESZT') {
-                            lbList.push(item);
-                        }
-                    }
-                });
-            }
-        } catch(e) {}
-
-        lbList.sort((a, b) => b.score - a.score);
-
-        let html = '<ol style="padding-left:20px;">';
-        if (lbList.length > 0) {
-            lbList.forEach((item, i) => {
-                const crown = (i === 0) ? '👑 ' : '';
-                html += `<li style="margin-bottom:6px;">${crown}<strong>${item.name}</strong>: <span style="color:var(--gold-color);">${item.score.toLocaleString()} Ft</span></li>`;
-            });
-        } else {
-            html += '<li>Még nincs regisztrált heti eredmény.</li>';
+        if (existingData && existingData.weekId === weekId) {
+            currentTotal = existingData.score || 0;
         }
-        html += '</ol>';
 
-        document.getElementById('leaderboard-list').innerHTML = html;
-        document.getElementById('leaderboard-modal').classList.add('visible');
+        const newTotal = currentTotal + score;
+        await fbPut(`leaderboard/${cleanKey}`, {
+            name: name,
+            score: newTotal,
+            weekId: weekId,
+            updatedAt: Date.now()
+        });
+    } catch(e) {}
+}
+
+async function showLeaderboard() {
+    const weekId = getWeeklyId();
+    let lbList = [];
+
+    try {
+        const lbData = await fbGet('leaderboard');
+        if (lbData) {
+            Object.keys(lbData).forEach(key => {
+                const item = lbData[key];
+                if (item && item.weekId === weekId) {
+                    if (item.name && item.name.trim().toUpperCase() !== 'TESZT') {
+                        lbList.push(item);
+                    }
+                }
+            });
+        }
+    } catch(e) {}
+
+    lbList.sort((a, b) => b.score - a.score);
+
+    let html = '<ol style="padding-left:20px;">';
+    if (lbList.length > 0) {
+        lbList.forEach((item, i) => {
+            const crown = (i === 0) ? '👑 ' : '';
+            html += `<li style="margin-bottom:6px;">${crown}<strong>${item.name}</strong>: <span style="color:var(--gold-color);">${item.score.toLocaleString()} Ft</span></li>`;
+        });
+    } else {
+        html += '<li>Még nincs regisztrált heti eredmény.</li>';
+    }
+    html += '</ol>';
+
+    document.getElementById('leaderboard-list').innerHTML = html;
+    document.getElementById('leaderboard-modal').classList.add('visible');
+}
+
+function respondToOffer(response) {
+    if (!gameState.pendingOffer || isSpectator) return;
+    const offer = gameState.pendingOffer;
+    const offererIdx = offer.from;
+    const acceptorIdx = offererIdx === 0 ? 1 : 0;
+    const amount = offer.amount;
+
+    if (response === 'accept') {
+        if (gameState.players[acceptorIdx].totalScore >= amount) {
+            gameState.players[acceptorIdx].totalScore -= amount;
+            gameState.players[offererIdx].totalScore += amount;
+            updateHostMessage(`🤝 <strong>ALKU ELFOGADVA!</strong> ${gameState.players[acceptorIdx].name} átadott ${amount.toLocaleString()} Ft-ot ${gameState.players[offererIdx].name}-nak.`);
+            AudioEngine.playFanfare();
+        } else {
+            updateHostMessage(`⚠️ Az elfogadó játékosnak nincs elég pénze! Az alku érvénytelen.`);
+        }
+    } else {
+        updateHostMessage(`🤝 <strong>ALKU ELUTASÍTVA!</strong> ${gameState.players[acceptorIdx].name} nem fogadta el az ajánlatot.`);
     }
 
-    function respondToOffer(response) {
-        if (!gameState.pendingOffer || isSpectator) return;
-        const offer = gameState.pendingOffer;
-        const offererIdx = offer.from;
-        const acceptorIdx = offererIdx === 0 ? 1 : 0;
-        const amount = offer.amount;
+    gameState.pendingOffer = null;
+    gameState.offerResponse = response;
+    document.getElementById('offer-modal').classList.remove('visible');
+    gameState.phase = 'IDLE';
+    pushStateToFirebase();
+    updateUI();
+    checkAITurn();
+}
 
-        if (response === 'accept') {
-            if (gameState.players[acceptorIdx].totalScore >= amount) {
-                gameState.players[acceptorIdx].totalScore -= amount;
-                gameState.players[offererIdx].totalScore += amount;
-                updateHostMessage(`🤝 <strong>ALKU ELFOGADVA!</strong> ${gameState.players[acceptorIdx].name} átadott ${amount.toLocaleString()} Ft-ot ${gameState.players[offererIdx].name}-nak.`);
-                AudioEngine.playFanfare();
+function updateUI() {
+    document.getElementById('p1-name').textContent = gameState.players[0].name;
+    document.getElementById('p2-name').textContent = gameState.players[1].name;
+    document.getElementById('p1-score').textContent = `${gameState.players[0].score.toLocaleString()} Ft`;
+    document.getElementById('p2-score').textContent = `${gameState.players[1].score.toLocaleString()} Ft`;
+    document.getElementById('p1-total').textContent = `Kassza: ${gameState.players[0].totalScore.toLocaleString()} Ft`;
+    document.getElementById('p2-total').textContent = `Kassza: ${gameState.players[1].totalScore.toLocaleString()} Ft`;
+
+    document.getElementById('hud-p1').className = 'player-hud' + (gameState.activePlayerIndex === 0 ? ' active' : '');
+    document.getElementById('hud-p2').className = 'player-hud' + (gameState.activePlayerIndex === 1 ? ' active' : '');
+
+    const currentVowelCost = getVowelCost();
+    document.getElementById('vowel-cost-display').textContent = `Magánhangzó: ${currentVowelCost.toLocaleString()} Ft`;
+
+    const stuckBtn = document.getElementById('stuck-btn');
+    const isStuck = isMyTurn() && gameState.phase === 'IDLE' && hasNoMoreConsonants() && getActivePlayer().score < currentVowelCost;
+    if (isStuck) {
+        stuckBtn.style.display = 'block';
+        document.getElementById('host-message').classList.add('stuck');
+    } else {
+        stuckBtn.style.display = 'none';
+        document.getElementById('host-message').classList.remove('stuck');
+    }
+
+    updateAlphabetUI();
+    document.getElementById('host-message').innerHTML = gameState.hostMessage;
+
+    const myTurn = isMyTurn();
+    const canSpinPhase = (gameState.phase === 'IDLE');
+    document.getElementById('spin-hub-btn').disabled = !myTurn || !canSpinPhase || gameState.spinInProgress || isSpectator;
+    document.getElementById('solve-button').disabled = !myTurn || gameState.spinInProgress || gameState.phase === 'ROUND_OVER' || isSpectator;
+}
+
+function setupBoard(puzzleText) {
+    const board = document.getElementById('puzzle-board');
+    board.innerHTML = '';
+    const words = puzzleText.toUpperCase().split(' ');
+    const maxChars = window.innerWidth < 500 ? 9 : 12;
+    const rows = [];
+    let currentRow = [], currentLen = 0;
+
+    words.forEach(word => {
+        if (currentLen + word.length > maxChars && currentRow.length > 0) {
+            rows.push(currentRow); currentRow = []; currentLen = 0;
+        }
+        currentRow.push(word); currentLen += word.length + 1;
+    });
+    if (currentRow.length) rows.push(currentRow);
+
+    rows.forEach(wordGroup => {
+        const rowDiv = document.createElement('div'); rowDiv.className = 'puzzle-row';
+        wordGroup.forEach((word, wi) => {
+            word.split('').forEach(char => {
+                const tile = document.createElement('div');
+                if (FULL_ALPHABET.includes(char)) {
+                    tile.className = 'puzzle-tile'; tile.dataset.letter = char;
+                    tile.innerHTML = `<div class="tile-inner"><div class="tile-face tile-front"></div><div class="tile-face tile-back">${char}</div></div>`;
+                } else if (char === ' ') {
+                    tile.className = 'puzzle-tile space';
+                } else {
+                    tile.className = 'puzzle-tile punct'; tile.textContent = char;
+                }
+                rowDiv.appendChild(tile);
+            });
+            if (wi < wordGroup.length - 1) {
+                const space = document.createElement('div'); space.className = 'puzzle-tile space'; rowDiv.appendChild(space);
+            }
+        });
+        board.appendChild(rowDiv);
+    });
+    renderGuessedLettersDirect();
+}
+
+function renderGuessedLettersDirect() {
+    const tiles = document.querySelectorAll('.puzzle-tile[data-letter]');
+    if (tiles.length === 0) return;
+    tiles.forEach(tile => {
+        const letter = tile.dataset.letter;
+        if (animatingLetters.has(letter)) return;
+
+        if (gameState.guessedLetters.includes(letter)) {
+            if (gameState.phase === 'BONUS_AWAITING_FLIP' || gameState.phase === 'BONUS_PICKING') {
+                const front = tile.querySelector('.tile-front');
+                if (front) {
+                    front.classList.add('highlight-glow');
+                }
             } else {
-                updateHostMessage(`⚠️ Az elfogadó játékosnak nincs elég pénze! Az alku érvénytelen.`);
+                tile.classList.add('revealed');
             }
+        }
+    });
+}
+
+function createAlphabet() {
+    const panel = document.getElementById('alphabet-panel'); panel.innerHTML = '';
+    FULL_ALPHABET.split('').forEach(letter => {
+        const btn = document.createElement('button');
+        btn.className = 'alphabet-key' + (VOWELS.includes(letter) ? ' vowel' : '');
+        btn.textContent = letter; btn.dataset.letter = letter;
+        btn.onclick = () => handleLetterGuess(letter);
+        panel.appendChild(btn);
+    });
+}
+
+function updateAlphabetUI() {
+    const active = getActivePlayer();
+    const myTurn = isMyTurn();
+    const currentVowelCost = getVowelCost();
+
+    document.querySelectorAll('.alphabet-key').forEach(btn => {
+        const letter = btn.dataset.letter;
+        const isVowel = VOWELS.includes(letter);
+        let disabled = !myTurn || gameState.guessedLetters.includes(letter) || gameState.spinInProgress || isSpectator;
+
+        if (gameState.bonusPickedConsonants.includes(letter) || gameState.bonusPickedVowel === letter) {
+            btn.classList.add('selected-bonus');
         } else {
-            updateHostMessage(`🤝 <strong>ALKU ELUTASÍTVA!</strong> ${gameState.players[acceptorIdx].name} nem fogadta el az ajánlatot.`);
+            btn.classList.remove('selected-bonus');
         }
 
-        gameState.pendingOffer = null;
-        gameState.offerResponse = response;
-        document.getElementById('offer-modal').classList.remove('visible');
-        gameState.phase = 'IDLE';
-        pushStateToFirebase();
-        updateUI();
-        checkAITurn();
-    }
-
-    function updateUI() {
-        document.getElementById('p1-name').textContent = gameState.players[0].name;
-        document.getElementById('p2-name').textContent = gameState.players[1].name;
-        document.getElementById('p1-score').textContent = `${gameState.players[0].score.toLocaleString()} Ft`;
-        document.getElementById('p2-score').textContent = `${gameState.players[1].score.toLocaleString()} Ft`;
-        document.getElementById('p1-total').textContent = `Kassza: ${gameState.players[0].totalScore.toLocaleString()} Ft`;
-        document.getElementById('p2-total').textContent = `Kassza: ${gameState.players[1].totalScore.toLocaleString()} Ft`;
-
-        document.getElementById('hud-p1').className = 'player-hud' + (gameState.activePlayerIndex === 0 ? ' active' : '');
-        document.getElementById('hud-p2').className = 'player-hud' + (gameState.activePlayerIndex === 1 ? ' active' : '');
-
-        const currentVowelCost = getVowelCost();
-        document.getElementById('vowel-cost-display').textContent = `Magánhangzó: ${currentVowelCost.toLocaleString()} Ft`;
-
-        const stuckBtn = document.getElementById('stuck-btn');
-        const isStuck = isMyTurn() && gameState.phase === 'IDLE' && hasNoMoreConsonants() && getActivePlayer().score < currentVowelCost;
-        if (isStuck) {
-            stuckBtn.style.display = 'block';
-            document.getElementById('host-message').classList.add('stuck');
-        } else {
-            stuckBtn.style.display = 'none';
-            document.getElementById('host-message').classList.remove('stuck');
-        }
-
-        updateAlphabetUI();
-        document.getElementById('host-message').innerHTML = gameState.hostMessage;
-
-        const myTurn = isMyTurn();
-        const canSpinPhase = (gameState.phase === 'IDLE');
-        document.getElementById('spin-hub-btn').disabled = !myTurn || !canSpinPhase || gameState.spinInProgress || isSpectator;
-        document.getElementById('solve-button').disabled = !myTurn || gameState.spinInProgress || gameState.phase === 'ROUND_OVER' || isSpectator;
-    }
-
-    function setupBoard(puzzleText) {
-        const board = document.getElementById('puzzle-board');
-        board.innerHTML = '';
-        const words = puzzleText.toUpperCase().split(' ');
-        const maxChars = window.innerWidth < 500 ? 9 : 12;
-        const rows = [];
-        let currentRow = [], currentLen = 0;
-
-        words.forEach(word => {
-            if (currentLen + word.length > maxChars && currentRow.length > 0) {
-                rows.push(currentRow); currentRow = []; currentLen = 0;
-            }
-            currentRow.push(word); currentLen += word.length + 1;
-        });
-        if (currentRow.length) rows.push(currentRow);
-
-        rows.forEach(wordGroup => {
-            const rowDiv = document.createElement('div'); rowDiv.className = 'puzzle-row';
-            wordGroup.forEach((word, wi) => {
-                word.split('').forEach(char => {
-                    const tile = document.createElement('div');
-                    if (FULL_ALPHABET.includes(char)) {
-                        tile.className = 'puzzle-tile'; tile.dataset.letter = char;
-                        tile.innerHTML = `<div class="tile-inner"><div class="tile-face tile-front"></div><div class="tile-face tile-back">${char}</div></div>`;
-                    } else if (char === ' ') {
-                        tile.className = 'puzzle-tile space';
-                    } else {
-                        tile.className = 'puzzle-tile punct'; tile.textContent = char;
-                    }
-                    rowDiv.appendChild(tile);
-                });
-                if (wi < wordGroup.length - 1) {
-                    const space = document.createElement('div'); space.className = 'puzzle-tile space'; rowDiv.appendChild(space);
-                }
-            });
-            board.appendChild(rowDiv);
-        });
-        renderGuessedLettersDirect();
-    }
-
-    function renderGuessedLettersDirect() {
-        const tiles = document.querySelectorAll('.puzzle-tile[data-letter]');
-        if (tiles.length === 0) return;
-        tiles.forEach(tile => {
-            const letter = tile.dataset.letter;
-            if (animatingLetters.has(letter)) return;
-
-            if (gameState.guessedLetters.includes(letter)) {
-                if (gameState.phase === 'BONUS_AWAITING_FLIP' || gameState.phase === 'BONUS_PICKING') {
-                    const front = tile.querySelector('.tile-front');
-                    if (front) {
-                        front.classList.add('highlight-glow');
-                    }
-                } else {
-                    tile.classList.add('revealed');
-                }
-            }
-        });
-    }
-
-    function createAlphabet() {
-        const panel = document.getElementById('alphabet-panel'); panel.innerHTML = '';
-        FULL_ALPHABET.split('').forEach(letter => {
-            const btn = document.createElement('button');
-            btn.className = 'alphabet-key' + (VOWELS.includes(letter) ? ' vowel' : '');
-            btn.textContent = letter; btn.dataset.letter = letter;
-            btn.onclick = () => handleLetterGuess(letter);
-            panel.appendChild(btn);
-        });
-    }
-
-    function updateAlphabetUI() {
-        const active = getActivePlayer();
-        const myTurn = isMyTurn();
-        const currentVowelCost = getVowelCost();
-
-        document.querySelectorAll('.alphabet-key').forEach(btn => {
-            const letter = btn.dataset.letter;
-            const isVowel = VOWELS.includes(letter);
-            let disabled = !myTurn || gameState.guessedLetters.includes(letter) || gameState.spinInProgress || isSpectator;
-
-            if (gameState.bonusPickedConsonants.includes(letter) || gameState.bonusPickedVowel === letter) {
-                btn.classList.add('selected-bonus');
+        if (gameState.phase === 'BONUS_PICKING') {
+            if (isVowel) {
+                disabled = disabled || !!gameState.bonusPickedVowel;
             } else {
-                btn.classList.remove('selected-bonus');
+                disabled = disabled || gameState.bonusPickedConsonants.includes(letter) || gameState.bonusPickedConsonants.length >= 5;
             }
-
-            if (gameState.phase === 'BONUS_PICKING') {
-                if (isVowel) {
-                    disabled = disabled || !!gameState.bonusPickedVowel;
-                } else {
-                    disabled = disabled || gameState.bonusPickedConsonants.includes(letter) || gameState.bonusPickedConsonants.length >= 5;
-                }
-            } else if (gameState.phase === 'BONUS_AWAITING_FLIP' || gameState.phase === 'BONUS_COUNTDOWN') {
-                disabled = true;
-            } else if (gameState.phase === 'IDLE') {
-                if (isVowel) {
-                    disabled = disabled || active.score < currentVowelCost;
-                } else {
-                    disabled = true;
-                }
-            } else if (gameState.phase === 'AWAITING_CONSONANT') {
-                if (isVowel) {
-                    disabled = true;
-                }
+        } else if (gameState.phase === 'BONUS_AWAITING_FLIP' || gameState.phase === 'BONUS_COUNTDOWN') {
+            disabled = true;
+        } else if (gameState.phase === 'IDLE') {
+            if (isVowel) {
+                disabled = disabled || active.score < currentVowelCost;
             } else {
                 disabled = true;
             }
-            btn.disabled = disabled;
-        });
+        } else if (gameState.phase === 'AWAITING_CONSONANT') {
+            if (isVowel) {
+                disabled = true;
+            }
+        } else {
+            disabled = true;
+        }
+        btn.disabled = disabled;
+    });
+}
+
+function updateHostMessage(msg, isImportant = false) {
+    gameState.hostMessage = msg;
+    const el = document.getElementById('host-message');
+    if (!el) return;
+    el.innerHTML = msg;
+    el.style.borderColor = isImportant ? 'var(--gold-color)' : 'rgba(244, 233, 216, 0.4)';
+}
+
+function drawWheel() {
+    const svg = document.getElementById('wheel'); 
+    if (!svg) return;
+    svg.innerHTML = '';
+    
+    if (!wheelSegments || wheelSegments.length === 0) {
+        wheelSegments = getWheelForRound(gameState.round || 1);
     }
 
-    function updateHostMessage(msg, isImportant = false) {
-        gameState.hostMessage = msg;
-        const el = document.getElementById('host-message');
-        if (!el) return;
-        el.innerHTML = msg;
-        el.style.borderColor = isImportant ? 'var(--gold-color)' : 'rgba(244, 233, 216, 0.4)';
-    }
-
-    function drawWheel() {
-        const svg = document.getElementById('wheel'); 
-        if (!svg) return;
-        svg.innerHTML = '';
+    const segCount = wheelSegments.length;
+    const step = 360 / segCount;
+    wheelSegments.forEach((seg, i) => {
+        const p1 = polarToCartesian(50, 50, 50, (i + 1) * step);
+        const p2 = polarToCartesian(50, 50, 50, i * step);
+        const d = `M 50 50 L ${p2.x} ${p2.y} A 50 50 0 0 1 ${p1.x} ${p1.y} Z`;
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", d); path.setAttribute("fill", seg.color || "#4caf50"); svg.appendChild(path);
         
-        if (!wheelSegments || wheelSegments.length === 0) {
-            wheelSegments = getWheelForRound(gameState.round || 1);
-        }
+        const textAngle = i * step + step / 2;
+        const pos = polarToCartesian(50, 50, 35, textAngle);
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("x", pos.x); text.setAttribute("y", pos.y); text.setAttribute("fill", "#ffffff");
+        
+        let fontSize = 4.2;
+        if (seg.label.length > 12) fontSize = 2.6;
+        else if (seg.label.length > 8) fontSize = 3.1;
+        else if (seg.label.length > 5) fontSize = 3.6;
 
-        const segCount = wheelSegments.length;
-        const step = 360 / segCount;
-        wheelSegments.forEach((seg, i) => {
-            const p1 = polarToCartesian(50, 50, 50, (i + 1) * step);
-            const p2 = polarToCartesian(50, 50, 50, i * step);
-            const d = `M 50 50 L ${p2.x} ${p2.y} A 50 50 0 0 1 ${p1.x} ${p1.y} Z`;
-            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            path.setAttribute("d", d); path.setAttribute("fill", seg.color || "#4caf50"); svg.appendChild(path);
-            
-            const textAngle = i * step + step / 2;
-            const pos = polarToCartesian(50, 50, 35, textAngle);
-            const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-            text.setAttribute("x", pos.x); text.setAttribute("y", pos.y); text.setAttribute("fill", "#ffffff");
-            
-            let fontSize = 4.2;
-            if (seg.label.length > 12) fontSize = 2.6;
-            else if (seg.label.length > 8) fontSize = 3.1;
-            else if (seg.label.length > 5) fontSize = 3.6;
+        text.setAttribute("font-size", fontSize + "px");
+        text.setAttribute("font-weight", "900"); 
+        text.setAttribute("text-anchor", "middle");
+        text.setAttribute("dominant-baseline", "middle");
+        text.setAttribute("transform", `rotate(${textAngle + 90} ${pos.x} ${pos.y})`);
+        text.style.filter = "drop-shadow(1px 1px 2px #000)";
+        text.textContent = seg.label; svg.appendChild(text);
+    });
+}
 
-            text.setAttribute("font-size", fontSize + "px");
-            text.setAttribute("font-weight", "900"); 
-            text.setAttribute("text-anchor", "middle");
-            text.setAttribute("dominant-baseline", "middle");
-            text.setAttribute("transform", `rotate(${textAngle + 90} ${pos.x} ${pos.y})`);
-            text.style.filter = "drop-shadow(1px 1px 2px #000)";
-            text.textContent = seg.label; svg.appendChild(text);
-        });
-    }
+function polarToCartesian(cx, cy, r, angleInDegrees) {
+    const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
+    return {
+        x: cx + (r * Math.cos(angleInRadians)),
+        y: cy + (r * Math.sin(angleInRadians))
+    };
+}
 
-    function polarToCartesian(cx, cy, r, angleInDegrees) {
-        const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
-        return {
-            x: cx + (r * Math.cos(angleInRadians)),
-            y: cy + (r * Math.sin(angleInRadians))
-        };
-    }
+function loadEditorWheelForRound() {
+    const select = document.getElementById('editor-round-select');
+    if (!select) return;
+    const r = select.value;
+    const segs = getWheelForRound(r);
+    const container = document.getElementById('editor-segments-container');
+    if (!container) return;
+    container.innerHTML = '';
 
-    function loadEditorWheelForRound() {
-        const select = document.getElementById('editor-round-select');
-        if (!select) return;
-        const r = select.value;
-        const segs = getWheelForRound(r);
-        const container = document.getElementById('editor-segments-container');
-        if (!container) return;
-        container.innerHTML = '';
-
-        segs.forEach((seg) => {
-            const row = document.createElement('div');
-            row.className = 'editor-row';
-            row.innerHTML = `
-                <input type="text" class="editor-input editor-label" value="${seg.label}" placeholder="Címke">
-                <input type="text" class="editor-input editor-val" value="${seg.value}" placeholder="Érték">
-                <input type="color" class="editor-color" value="${seg.color || '#4caf50'}">
-                <button onclick="this.parentElement.remove()" style="background:#f44336; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">X</button>
-            `;
-            container.appendChild(row);
-        });
-    }
-
-    function addEditorSegmentRow() {
-        const container = document.getElementById('editor-segments-container');
-        if (!container) return;
+    segs.forEach((seg) => {
         const row = document.createElement('div');
         row.className = 'editor-row';
         row.innerHTML = `
-            <input type="text" class="editor-input editor-label" value="500" placeholder="Címke">
-            <input type="text" class="editor-input editor-val" value="500" placeholder="Érték">
-            <input type="color" class="editor-color" value="#4caf50">
+            <input type="text" class="editor-input editor-label" value="${seg.label}" placeholder="Címke">
+            <input type="text" class="editor-input editor-val" value="${seg.value}" placeholder="Érték">
+            <input type="color" class="editor-color" value="${seg.color || '#4caf50'}">
             <button onclick="this.parentElement.remove()" style="background:#f44336; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">X</button>
         `;
         container.appendChild(row);
+    });
+}
+
+function addEditorSegmentRow() {
+    const container = document.getElementById('editor-segments-container');
+    if (!container) return;
+    const row = document.createElement('div');
+    row.className = 'editor-row';
+    row.innerHTML = `
+        <input type="text" class="editor-input editor-label" value="500" placeholder="Címke">
+        <input type="text" class="editor-input editor-val" value="500" placeholder="Érték">
+        <input type="color" class="editor-color" value="#4caf50">
+        <button onclick="this.parentElement.remove()" style="background:#f44336; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">X</button>
+    `;
+    container.appendChild(row);
+}
+
+function saveCustomWheelConfig() {
+    const select = document.getElementById('editor-round-select');
+    if (!select) return;
+    const r = select.value;
+    const rows = document.querySelectorAll('#editor-segments-container .editor-row');
+    let newSegs = [];
+
+    rows.forEach(row => {
+        const label = row.querySelector('.editor-label').value.trim();
+        const valRaw = row.querySelector('.editor-val').value.trim();
+        const color = row.querySelector('.editor-color').value;
+        const val = isNaN(valRaw) ? valRaw : parseInt(valRaw);
+
+        if (label) newSegs.push({ label, value: val, color });
+    });
+
+    if (gameState.round == r) {
+        wheelSegments = newSegs;
+        drawWheel();
     }
 
-    function saveCustomWheelConfig() {
-        const select = document.getElementById('editor-round-select');
-        if (!select) return;
-        const r = select.value;
-        const rows = document.querySelectorAll('#editor-segments-container .editor-row');
-        let newSegs = [];
+    alert(`A(z) ${r}. forduló kereke frissítve!`);
+}
 
-        rows.forEach(row => {
-            const label = row.querySelector('.editor-label').value.trim();
-            const valRaw = row.querySelector('.editor-val').value.trim();
-            const color = row.querySelector('.editor-color').value;
-            const val = isNaN(valRaw) ? valRaw : parseInt(valRaw);
-
-            if (label) newSegs.push({ label, value: val, color });
-        });
-
-        if (gameState.round == r) {
-            wheelSegments = newSegs;
-            drawWheel();
+function setupLogoDev() {
+    const logoContainer = document.getElementById('logo-container');
+    if (!logoContainer) return;
+    logoContainer.onclick = () => {
+        logoClicks++;
+        if (logoClicks >= 5) {
+            logoClicks = 0;
+            loadEditorWheelForRound();
+            document.getElementById('dev-modal').classList.add('visible');
         }
-
-        alert(`A(z) ${r}. forduló kereke frissítve!`);
-    }
-
-    function setupLogoDev() {
-        const logoContainer = document.getElementById('logo-container');
-        if (!logoContainer) return;
-        logoContainer.onclick = () => {
-            logoClicks++;
-            if (logoClicks >= 5) {
-                logoClicks = 0;
-                loadEditorWheelForRound();
-                document.getElementById('dev-modal').classList.add('visible');
-            }
+    };
+    
+    const devCloseBtn = document.getElementById('dev-close-btn');
+    if (devCloseBtn) devCloseBtn.onclick = () => document.getElementById('dev-modal').classList.remove('visible');
+    
+    const devRevealBtn = document.getElementById('dev-reveal-btn');
+    if (devRevealBtn) {
+        devRevealBtn.onclick = () => {
+            document.querySelectorAll('.puzzle-tile[data-letter]').forEach(t => t.classList.add('revealed'));
+            document.getElementById('dev-modal').classList.remove('visible');
         };
-        
-        const devCloseBtn = document.getElementById('dev-close-btn');
-        if (devCloseBtn) devCloseBtn.onclick = () => document.getElementById('dev-modal').classList.remove('visible');
-        
-        const devRevealBtn = document.getElementById('dev-reveal-btn');
-        if (devRevealBtn) {
-            devRevealBtn.onclick = () => {
-                document.querySelectorAll('.puzzle-tile[data-letter]').forEach(t => t.classList.add('revealed'));
-                document.getElementById('dev-modal').classList.remove('visible');
-            };
-        }
     }
+}
 
-    // =====================================================================
-    // 🌍 GLOBÁLIS WINDOW KÖTÉSEK (HTML ONCLICK ESEMÉNYEKHEZ)
-    // =====================================================================
-    window.toggleMute = toggleMute;
-    window.showLeaderboard = showLeaderboard;
-    window.startSoloGame = startSoloGame;
-    window.createOnlineDuelRoom = createOnlineDuelRoom;
-    window.joinOnlineRoomPrompt = joinOnlineRoomPrompt;
-    window.startBoosterCharge = startBoosterCharge;
-    window.solvePuzzle = solvePuzzle;
-    window.submitInlineBonusSolve = submitInlineBonusSolve;
-    window.exitRoomAndReturnLobby = exitRoomAndReturnLobby;
-    window.loadEditorWheelForRound = loadEditorWheelForRound;
-    window.addEditorSegmentRow = addEditorSegmentRow;
-    window.saveCustomWheelConfig = saveCustomWheelConfig;
-    window.openStandaloneBlackjack = openStandaloneBlackjack;
-    window.addChipBet = addChipBet;
-    window.setBJBetMax = setBJBetMax;
-    window.resetBJBet = resetBJBet;
-    window.startBJHand = startBJHand;
-    window.bjHit = bjHit;
-    window.bjStand = bjStand;
-    window.closeBlackjackModal = closeBlackjackModal;
-    window.closeBJResultAndContinue = closeBJResultAndContinue;
-    window.openStandaloneLuxor = openStandaloneLuxor;
-    window.addLuxorChipBet = addLuxorChipBet;
-    window.startLuxorGame = startLuxorGame;
-    window.luxorDecision = luxorDecision;
-    window.closeLuxorModal = closeLuxorModal;
+// =====================================================================
+// 🌍 GLOBÁLIS WINDOW KÖTÉSEK (HTML ONCLICK ESEMÉNYEKHEZ)
+// =====================================================================
+window.toggleMute = toggleMute;
+window.showLeaderboard = showLeaderboard;
+window.startSoloGame = startSoloGame;
+window.createOnlineDuelRoom = createOnlineDuelRoom;
+window.joinOnlineRoomPrompt = joinOnlineRoomPrompt;
+window.startBoosterCharge = startBoosterCharge;
+window.solvePuzzle = solvePuzzle;
+window.submitInlineBonusSolve = submitInlineBonusSolve;
+window.exitRoomAndReturnLobby = exitRoomAndReturnLobby;
+window.loadEditorWheelForRound = loadEditorWheelForRound;
+window.addEditorSegmentRow = addEditorSegmentRow;
+window.saveCustomWheelConfig = saveCustomWheelConfig;
+window.openStandaloneBlackjack = openStandaloneBlackjack;
+window.addChipBet = addChipBet;
+window.setBJBetMax = setBJBetMax;
+window.resetBJBet = resetBJBet;
+window.startBJHand = startBJHand;
+window.bjHit = bjHit;
+window.bjStand = bjStand;
+window.closeBlackjackModal = closeBlackjackModal;
+window.closeBJResultAndContinue = closeBJResultAndContinue;
+window.openStandaloneLuxor = openStandaloneLuxor;
+window.addLuxorChipBet = addLuxorChipBet;
+window.startLuxorGame = startLuxorGame;
+window.luxorDecision = luxorDecision;
+window.closeLuxorModal = closeLuxorModal;
 </script>
 </body>
 </html>
