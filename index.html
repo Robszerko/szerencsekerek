@@ -600,12 +600,10 @@
         <h3 style="color:#e0aaff; font-size:1.8rem; margin-bottom:2px; text-shadow:0 0 8px #9c27b0;">🍀 LUXOR BINGO 🍀</h3>
         <p style="font-size:0.8rem; color:#e0e0e0; margin-top:0;">10 mp-es sorsolás, L-U-X-O-R oszlopbetűk, 3 Arany Szám & Szigorú Határszám!</p>
 
-        <!-- FIGYELMEZTETŐ BÁDZS -->
         <div style="background: rgba(217, 32, 39, 0.25); border: 2px solid #d92027; border-radius: 8px; padding: 6px 10px; margin-bottom: 8px; font-size: 0.75rem; color: #ffcdd2; text-align: center; font-weight: bold;">
             ⚠️ FONTOS SZABÁLY: A golyók sorsolása a Szigorú HATÁRSZÁMNÁL LEÁLL! Ha a Határszámig nincs Kép, Keret vagy Luxor, a feltett tét ELVESZIK!
         </div>
 
-        <!-- LUXOR JÁTÉKSZABÁLYZAT -->
         <div style="background: rgba(0,0,0,0.5); border: 1px solid #e0aaff; border-radius: 10px; padding: 8px 10px; margin-bottom: 8px; font-size:0.75rem; color:#ddd; text-align:left;">
             <div style="color:var(--gold-color); font-weight:bold; text-align:center; margin-bottom:4px;">📖 LUXOR JÁTÉKSZABÁLYZAT & NYEREMÉNYEK</div>
             • <strong>Oszlopbetűk</strong>: L (1-15), U (16-30), X (31-45), O (46-60), R (61-75)<br>
@@ -616,7 +614,6 @@
             • <strong>3 Arany Szám (⭐)</strong>: Bejelöléskor a Ház racionális pénzajánlatot tesz a visszavásárlásra!
         </div>
 
-        <!-- LUXOR ARANY SZÁM PÉNZJAÁNLAT POPUP -->
         <div id="luxor-risk-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.94); border-radius:14px; z-index:100; flex-direction:column; justify-content:center; align-items:center; padding:20px; box-sizing:border-box;">
             <h2 id="luxor-risk-title" style="font-family:'Shrikhand', cursive; font-size:1.8rem; margin:0 0 8px 0; color:var(--gold-color);">🏆 ARANY SZÁM TALÁLAT!</h2>
             <p id="luxor-risk-msg" style="font-size:0.9rem; color:#eee; margin:0 0 15px 0; text-align:center; font-weight:bold;">A Ház visszavásárlási ajánlata: 5 000 Ft. Elfogadja a nyereményt vagy folytatja a sorsolást a Határszámig?</p>
@@ -627,7 +624,6 @@
             </div>
         </div>
 
-        <!-- 10 GOLYÓS GÖRDÜLŐ SORSOLÓ KIJELZŐ MATT RETRO GOLYÓKKAL -->
         <div style="background:rgba(0,0,0,0.5); padding:8px 10px; border-radius:10px; border:1px solid #e0aaff; margin-bottom:8px;">
             <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; color:#aaa; margin-bottom:4px;">
                 <span>SORSOLT GOLYÓK (LEGUTÓBBI 10):</span>
@@ -643,7 +639,6 @@
             <div style="font-size:0.85rem; color:white;">Tét: <strong id="luxor-current-bet" style="color:#ffeb3b;">1 000 Ft</strong></div>
         </div>
 
-        <!-- ZSETONOK TÉT RAKÁSHOZ -->
         <div id="luxor-bet-controls" style="margin-bottom:8px; display:flex; flex-direction:column; align-items:center; gap:4px;">
             <div class="casino-chips-container">
                 <div class="casino-chip chip-1k" onclick="addLuxorChipBet(1000)">1K</div>
@@ -654,7 +649,6 @@
             <button class="action-btn" onclick="startLuxorGame()" style="background:#9c27b0; color:white; width:100%; max-width:360px;">🍀 10 MP-ES SORSOLÁS INDÍTÁSA!</button>
         </div>
 
-        <!-- LUXOR SZELVÉNY -->
         <div class="luxor-ticket-container">
             <div class="luxor-header-row">
                 <span>L</span><span>U</span><span>X</span><span>O</span><span>R</span>
@@ -714,36 +708,34 @@
 // =====================================================================
 const FIREBASE_DB_URL = "https://szerencsekerek20260807-default-rtdb.europe-west1.firebasedatabase.app";
 
+// EGYEDI FELHŐ JÁTÉKOS AZONOSÍTÓ A NÉV-EGYEZÉS MIATTI KIJAVÍTÁSHOZ
+const myPlayerId = 'p_' + Math.random().toString(36).substr(2, 9);
+
 async function fbPut(path, data) {
-    const res = await fetch(`${FIREBASE_DB_URL}/${path}.json`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    });
-    return await res.json();
+    try {
+        await db.ref(path).set(data);
+        return data;
+    } catch(e) { return null; }
 }
 
 async function fbPatch(path, data) {
-    const res = await fetch(`${FIREBASE_DB_URL}/${path}.json`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    });
-    return await res.json();
+    try {
+        await db.ref(path).update(data);
+        return data;
+    } catch(e) { return null; }
 }
 
 async function fbGet(path) {
     try {
-        const res = await fetch(`${FIREBASE_DB_URL}/${path}.json`);
-        if (!res.ok) return null;
-        return await res.json();
+        const snap = await db.ref(path).once('value');
+        return snap.exists() ? snap.val() : null;
     } catch(e) { return null; }
 }
 
 async function fbDelete(path) {
     try {
-        const res = await fetch(`${FIREBASE_DB_URL}/${path}.json`, { method: 'DELETE' });
-        return await res.json();
+        await db.ref(path).remove();
+        return true;
     } catch(e) { return null; }
 }
 
@@ -1239,7 +1231,9 @@ async function startSoloGame() {
         gameType: 'wheel',
         createdDate: getTodayDateString(),
         p1: myPlayerName,
+        p1Id: myPlayerId,
         p2: "Robot (Ödön)",
+        p2Id: 'robot_odon',
         spectatorsCount: 0,
         status: "playing",
         activePlayerIndex: 0,
@@ -1286,7 +1280,9 @@ async function createOnlineDuelRoom(type = 'wheel') {
         gameType: type,
         createdDate: getTodayDateString(),
         p1: myPlayerName,
+        p1Id: myPlayerId,
         p2: "Várakozás ellenfélre...",
+        p2Id: null,
         spectatorsCount: 0,
         status: "waiting",
         activePlayerIndex: 0,
@@ -1310,8 +1306,8 @@ async function createOnlineDuelRoom(type = 'wheel') {
 
     try {
         const resData = await fbPut(`rooms/${roomCode}`, initialRoomData);
-        if (resData && resData.error) {
-            alert("⚠️ Firebase Hiba: " + JSON.stringify(resData.error));
+        if (!resData) {
+            alert("⚠️ Firebase Csatlakozási Hiba!");
             return;
         }
     } catch(e) {
@@ -1359,6 +1355,7 @@ async function joinOnlineRoomPrompt(type) {
             isSpectator = false;
             await fbPatch(`rooms/${code}`, {
                 p2: myPlayerName,
+                p2Id: myPlayerId,
                 status: "playing",
                 hostMessage: `<strong>${myPlayerName}</strong> csatlakozott! Kezdődik a párbaj!`,
                 updatedAt: Date.now()
@@ -1408,6 +1405,7 @@ function subscribeToFirebaseRoom(code) {
         const room = snapshot.val();
         currentGameType = room.gameType || 'wheel';
 
+        // AZONNALI CSATLAKOZÁS AZ AKTÍV SZOBA ÁLLAPOTÁHOZ
         if (room.status === "playing") {
             const lobbyOverlay = document.getElementById('lobby-overlay');
             const waitingOverlay = document.getElementById('waiting-overlay');
@@ -1441,7 +1439,7 @@ function syncStateFromRoom(room) {
         document.getElementById('spectator-count').textContent = `👀 Nézők: ${room.spectatorsCount}`;
     }
 
-    // PÁRBAJ ÉS KÉT JÁTÉKOS NÉV SYNC KORRIGÁLÁSA
+    // PÁRBAJ ÉS KÉT JÁTÉKOS NÉV & SZEREP CSATLAKOZÁS
     gameState.players[0].name = room.p1 || 'Játékos 1';
     gameState.players[1].name = (room.p2 && room.p2 !== "Várakozás ellenfélre...") ? room.p2 : 'Robot (Ödön)';
     
@@ -1449,17 +1447,18 @@ function syncStateFromRoom(room) {
     if (document.getElementById('p2-name')) document.getElementById('p2-name').textContent = gameState.players[1].name;
     if (document.getElementById('hud-p2')) document.getElementById('hud-p2').style.display = 'block';
 
-    if (currentGameType !== 'wheel') return;
-
-    const oldPuzzle = gameState.currentPuzzle?.puzzle;
-
-    if (!isSpectator && myPlayerName) {
-        if (gameState.players[0].name === myPlayerName) {
+    // CSATLAKOZÓ SZEREP MEGÁLLAPÍTÁSA EGYEDI ID ALAPJÁN
+    if (!isSpectator) {
+        if (room.p1Id === myPlayerId) {
             myPlayerIndex = 0;
-        } else if (gameState.players[1].name === myPlayerName) {
+        } else if (room.p2Id === myPlayerId) {
             myPlayerIndex = 1;
         }
     }
+
+    if (currentGameType !== 'wheel') return;
+
+    const oldPuzzle = gameState.currentPuzzle?.puzzle;
 
     gameState.players[0].score = room.scores?.[0] ?? 0;
     gameState.players[1].score = room.scores?.[1] ?? 0;
@@ -2626,7 +2625,7 @@ async function openStandaloneBlackjack() {
         updateRoomBadge(roomCode, 0);
         try {
             await fbPut(`rooms/${roomCode}`, {
-                code: roomCode, gameType: 'blackjack', p1: myPlayerName, p2: "Robot (Ödön)", status: "playing", updatedAt: Date.now()
+                code: roomCode, gameType: 'blackjack', p1: myPlayerName, p1Id: myPlayerId, p2: "Robot (Ödön)", status: "playing", updatedAt: Date.now()
             });
             subscribeToFirebaseRoom(roomCode);
         } catch(e){}
@@ -2972,7 +2971,6 @@ let luxorPendingWinAmount = 0;
 let luxorInitialBalance = 0;
 let luxorHatarszam = 42;
 
-// OSZLOPBETŰ SEGÉDFÜGGVÉNY A LUXORHOZ
 function getLuxorBallLetter(num) {
     if (num >= 1 && num <= 15) return 'L';
     if (num >= 16 && num <= 30) return 'U';
@@ -3001,7 +2999,7 @@ async function openStandaloneLuxor() {
         updateRoomBadge(roomCode, 0);
         try {
             await fbPut(`rooms/${roomCode}`, {
-                code: roomCode, gameType: 'luxor', p1: myPlayerName, p2: "Robot (Ödön)", status: "playing", updatedAt: Date.now()
+                code: roomCode, gameType: 'luxor', p1: myPlayerName, p1Id: myPlayerId, p2: "Robot (Ödön)", status: "playing", updatedAt: Date.now()
             });
             subscribeToFirebaseRoom(roomCode);
         } catch(e){}
@@ -3154,7 +3152,6 @@ async function startLuxorGame() {
             return;
         }
 
-        // AKKOR IS LEÁLL, HA ELÉRTE A HATÁRSZÁMOT VAGY A GOLYÓK FOGYTAT
         if (luxorDrawnBalls.length >= luxorHatarszam || ballIndex >= ballPool.length) {
             clearInterval(luxorInterval);
             luxorInterval = null;
@@ -3183,7 +3180,7 @@ async function startLuxorGame() {
     }, 10000); // 10 MÁSODPERCENKÉNT!
 }
 
-// 10-ES GÓLYÓSOR MEGJELENÍTÉSE OSZLOPBETŰKKEL MINTA BINGO-BAN
+// 10-ES GÓLYÓSOR MEGJELENÍTÉSE OSZLOPBETŰKKEL MATT BÉKEBELI STÍLUSBAN
 function renderLuxorBallHistory() {
     const historyContainer = document.getElementById('luxor-balls-history');
     const recentBalls = luxorDrawnBalls.slice(-10);
@@ -3328,398 +3325,398 @@ async function saveLeaderboardScoreFirebase(name, score) {
 
     try {
         const existingData = await fbGet(`leaderboard/${cleanKey}`);
-        let currentTotal = 0;
+       let currentTotal = 0;
 
-        if (existingData && existingData.weekId === weekId) {
-            currentTotal = existingData.score || 0;
-        }
+            if (existingData && existingData.weekId === weekId) {
+                currentTotal = existingData.score || 0;
+            }
 
-        const newTotal = currentTotal + score;
-        await fbPut(`leaderboard/${cleanKey}`, {
-            name: name,
-            score: newTotal,
-            weekId: weekId,
-            updatedAt: Date.now()
-        });
-    } catch(e) {}
-}
+            const newTotal = currentTotal + score;
+            await fbPut(`leaderboard/${cleanKey}`, {
+                name: name,
+                score: newTotal,
+                weekId: weekId,
+                updatedAt: Date.now()
+            });
+        } catch(e) {}
+    }
 
-async function showLeaderboard() {
-    const weekId = getWeeklyId();
-    let lbList = [];
+    async function showLeaderboard() {
+        const weekId = getWeeklyId();
+        let lbList = [];
 
-    try {
-        const lbData = await fbGet('leaderboard');
-        if (lbData) {
-            Object.keys(lbData).forEach(key => {
-                const item = lbData[key];
-                if (item && item.weekId === weekId) {
-                    if (item.name && item.name.trim().toUpperCase() !== 'TESZT') {
-                        lbList.push(item);
+        try {
+            const lbData = await fbGet('leaderboard');
+            if (lbData) {
+                Object.keys(lbData).forEach(key => {
+                    const item = lbData[key];
+                    if (item && item.weekId === weekId) {
+                        if (item.name && item.name.trim().toUpperCase() !== 'TESZT') {
+                            lbList.push(item);
+                        }
                     }
+                });
+            }
+        } catch(e) {}
+
+        lbList.sort((a, b) => b.score - a.score);
+
+        let html = '<ol style="padding-left:20px;">';
+        if (lbList.length > 0) {
+            lbList.forEach((item, i) => {
+                const crown = (i === 0) ? '👑 ' : '';
+                html += `<li style="margin-bottom:6px;">${crown}<strong>${item.name}</strong>: <span style="color:var(--gold-color);">${item.score.toLocaleString()} Ft</span></li>`;
+            });
+        } else {
+            html += '<li>Még nincs regisztrált heti eredmény.</li>';
+        }
+        html += '</ol>';
+
+        document.getElementById('leaderboard-list').innerHTML = html;
+        document.getElementById('leaderboard-modal').classList.add('visible');
+    }
+
+    function respondToOffer(response) {
+        if (!gameState.pendingOffer || isSpectator) return;
+        const offer = gameState.pendingOffer;
+        const offererIdx = offer.from;
+        const acceptorIdx = offererIdx === 0 ? 1 : 0;
+        const amount = offer.amount;
+
+        if (response === 'accept') {
+            if (gameState.players[acceptorIdx].totalScore >= amount) {
+                gameState.players[acceptorIdx].totalScore -= amount;
+                gameState.players[offererIdx].totalScore += amount;
+                updateHostMessage(`🤝 <strong>ALKU ELFOGADVA!</strong> ${gameState.players[acceptorIdx].name} átadott ${amount.toLocaleString()} Ft-ot ${gameState.players[offererIdx].name}-nak.`);
+                AudioEngine.playFanfare();
+            } else {
+                updateHostMessage(`⚠️ Az elfogadó játékosnak nincs elég pénze! Az alku érvénytelen.`);
+            }
+        } else {
+            updateHostMessage(`🤝 <strong>ALKU ELUTASÍTVA!</strong> ${gameState.players[acceptorIdx].name} nem fogadta el az ajánlatot.`);
+        }
+
+        gameState.pendingOffer = null;
+        gameState.offerResponse = response;
+        document.getElementById('offer-modal').classList.remove('visible');
+        gameState.phase = 'IDLE';
+        pushStateToFirebase();
+        updateUI();
+        checkAITurn();
+    }
+
+    function updateUI() {
+        document.getElementById('p1-name').textContent = gameState.players[0].name;
+        document.getElementById('p2-name').textContent = gameState.players[1].name;
+        document.getElementById('p1-score').textContent = `${gameState.players[0].score.toLocaleString()} Ft`;
+        document.getElementById('p2-score').textContent = `${gameState.players[1].score.toLocaleString()} Ft`;
+        document.getElementById('p1-total').textContent = `Kassza: ${gameState.players[0].totalScore.toLocaleString()} Ft`;
+        document.getElementById('p2-total').textContent = `Kassza: ${gameState.players[1].totalScore.toLocaleString()} Ft`;
+
+        document.getElementById('hud-p1').className = 'player-hud' + (gameState.activePlayerIndex === 0 ? ' active' : '');
+        document.getElementById('hud-p2').className = 'player-hud' + (gameState.activePlayerIndex === 1 ? ' active' : '');
+
+        const currentVowelCost = getVowelCost();
+        document.getElementById('vowel-cost-display').textContent = `Magánhangzó: ${currentVowelCost.toLocaleString()} Ft`;
+
+        const stuckBtn = document.getElementById('stuck-btn');
+        const isStuck = isMyTurn() && gameState.phase === 'IDLE' && hasNoMoreConsonants() && getActivePlayer().score < currentVowelCost;
+        if (isStuck) {
+            stuckBtn.style.display = 'block';
+            document.getElementById('host-message').classList.add('stuck');
+        } else {
+            stuckBtn.style.display = 'none';
+            document.getElementById('host-message').classList.remove('stuck');
+        }
+
+        updateAlphabetUI();
+        document.getElementById('host-message').innerHTML = gameState.hostMessage;
+
+        const myTurn = isMyTurn();
+        const canSpinPhase = (gameState.phase === 'IDLE');
+        document.getElementById('spin-hub-btn').disabled = !myTurn || !canSpinPhase || gameState.spinInProgress || isSpectator;
+        document.getElementById('solve-button').disabled = !myTurn || gameState.spinInProgress || gameState.phase === 'ROUND_OVER' || isSpectator;
+    }
+
+    function setupBoard(puzzleText) {
+        const board = document.getElementById('puzzle-board');
+        board.innerHTML = '';
+        const words = puzzleText.toUpperCase().split(' ');
+        const maxChars = window.innerWidth < 500 ? 9 : 12;
+        const rows = [];
+        let currentRow = [], currentLen = 0;
+
+        words.forEach(word => {
+            if (currentLen + word.length > maxChars && currentRow.length > 0) {
+                rows.push(currentRow); currentRow = []; currentLen = 0;
+            }
+            currentRow.push(word); currentLen += word.length + 1;
+        });
+        if (currentRow.length) rows.push(currentRow);
+
+        rows.forEach(wordGroup => {
+            const rowDiv = document.createElement('div'); rowDiv.className = 'puzzle-row';
+            wordGroup.forEach((word, wi) => {
+                word.split('').forEach(char => {
+                    const tile = document.createElement('div');
+                    if (FULL_ALPHABET.includes(char)) {
+                        tile.className = 'puzzle-tile'; tile.dataset.letter = char;
+                        tile.innerHTML = `<div class="tile-inner"><div class="tile-face tile-front"></div><div class="tile-face tile-back">${char}</div></div>`;
+                    } else if (char === ' ') {
+                        tile.className = 'puzzle-tile space';
+                    } else {
+                        tile.className = 'puzzle-tile punct'; tile.textContent = char;
+                    }
+                    rowDiv.appendChild(tile);
+                });
+                if (wi < wordGroup.length - 1) {
+                    const space = document.createElement('div'); space.className = 'puzzle-tile space'; rowDiv.appendChild(space);
                 }
             });
-        }
-    } catch(e) {}
-
-    lbList.sort((a, b) => b.score - a.score);
-
-    let html = '<ol style="padding-left:20px;">';
-    if (lbList.length > 0) {
-        lbList.forEach((item, i) => {
-            const crown = (i === 0) ? '👑 ' : '';
-            html += `<li style="margin-bottom:6px;">${crown}<strong>${item.name}</strong>: <span style="color:var(--gold-color);">${item.score.toLocaleString()} Ft</span></li>`;
+            board.appendChild(rowDiv);
         });
-    } else {
-        html += '<li>Még nincs regisztrált heti eredmény.</li>';
-    }
-    html += '</ol>';
-
-    document.getElementById('leaderboard-list').innerHTML = html;
-    document.getElementById('leaderboard-modal').classList.add('visible');
-}
-
-function respondToOffer(response) {
-    if (!gameState.pendingOffer || isSpectator) return;
-    const offer = gameState.pendingOffer;
-    const offererIdx = offer.from;
-    const acceptorIdx = offererIdx === 0 ? 1 : 0;
-    const amount = offer.amount;
-
-    if (response === 'accept') {
-        if (gameState.players[acceptorIdx].totalScore >= amount) {
-            gameState.players[acceptorIdx].totalScore -= amount;
-            gameState.players[offererIdx].totalScore += amount;
-            updateHostMessage(`🤝 <strong>ALKU ELFOGADVA!</strong> ${gameState.players[acceptorIdx].name} átadott ${amount.toLocaleString()} Ft-ot ${gameState.players[offererIdx].name}-nak.`);
-            AudioEngine.playFanfare();
-        } else {
-            updateHostMessage(`⚠️ Az elfogadó játékosnak nincs elég pénze! Az alku érvénytelen.`);
-        }
-    } else {
-        updateHostMessage(`🤝 <strong>ALKU ELUTASÍTVA!</strong> ${gameState.players[acceptorIdx].name} nem fogadta el az ajánlatot.`);
+        renderGuessedLettersDirect();
     }
 
-    gameState.pendingOffer = null;
-    gameState.offerResponse = response;
-    document.getElementById('offer-modal').classList.remove('visible');
-    gameState.phase = 'IDLE';
-    pushStateToFirebase();
-    updateUI();
-    checkAITurn();
-}
+    function renderGuessedLettersDirect() {
+        const tiles = document.querySelectorAll('.puzzle-tile[data-letter]');
+        if (tiles.length === 0) return;
+        tiles.forEach(tile => {
+            const letter = tile.dataset.letter;
+            if (animatingLetters.has(letter)) return;
 
-function updateUI() {
-    document.getElementById('p1-name').textContent = gameState.players[0].name;
-    document.getElementById('p2-name').textContent = gameState.players[1].name;
-    document.getElementById('p1-score').textContent = `${gameState.players[0].score.toLocaleString()} Ft`;
-    document.getElementById('p2-score').textContent = `${gameState.players[1].score.toLocaleString()} Ft`;
-    document.getElementById('p1-total').textContent = `Kassza: ${gameState.players[0].totalScore.toLocaleString()} Ft`;
-    document.getElementById('p2-total').textContent = `Kassza: ${gameState.players[1].totalScore.toLocaleString()} Ft`;
-
-    document.getElementById('hud-p1').className = 'player-hud' + (gameState.activePlayerIndex === 0 ? ' active' : '');
-    document.getElementById('hud-p2').className = 'player-hud' + (gameState.activePlayerIndex === 1 ? ' active' : '');
-
-    const currentVowelCost = getVowelCost();
-    document.getElementById('vowel-cost-display').textContent = `Magánhangzó: ${currentVowelCost.toLocaleString()} Ft`;
-
-    const stuckBtn = document.getElementById('stuck-btn');
-    const isStuck = isMyTurn() && gameState.phase === 'IDLE' && hasNoMoreConsonants() && getActivePlayer().score < currentVowelCost;
-    if (isStuck) {
-        stuckBtn.style.display = 'block';
-        document.getElementById('host-message').classList.add('stuck');
-    } else {
-        stuckBtn.style.display = 'none';
-        document.getElementById('host-message').classList.remove('stuck');
-    }
-
-    updateAlphabetUI();
-    document.getElementById('host-message').innerHTML = gameState.hostMessage;
-
-    const myTurn = isMyTurn();
-    const canSpinPhase = (gameState.phase === 'IDLE');
-    document.getElementById('spin-hub-btn').disabled = !myTurn || !canSpinPhase || gameState.spinInProgress || isSpectator;
-    document.getElementById('solve-button').disabled = !myTurn || gameState.spinInProgress || gameState.phase === 'ROUND_OVER' || isSpectator;
-}
-
-function setupBoard(puzzleText) {
-    const board = document.getElementById('puzzle-board');
-    board.innerHTML = '';
-    const words = puzzleText.toUpperCase().split(' ');
-    const maxChars = window.innerWidth < 500 ? 9 : 12;
-    const rows = [];
-    let currentRow = [], currentLen = 0;
-
-    words.forEach(word => {
-        if (currentLen + word.length > maxChars && currentRow.length > 0) {
-            rows.push(currentRow); currentRow = []; currentLen = 0;
-        }
-        currentRow.push(word); currentLen += word.length + 1;
-    });
-    if (currentRow.length) rows.push(currentRow);
-
-    rows.forEach(wordGroup => {
-        const rowDiv = document.createElement('div'); rowDiv.className = 'puzzle-row';
-        wordGroup.forEach((word, wi) => {
-            word.split('').forEach(char => {
-                const tile = document.createElement('div');
-                if (FULL_ALPHABET.includes(char)) {
-                    tile.className = 'puzzle-tile'; tile.dataset.letter = char;
-                    tile.innerHTML = `<div class="tile-inner"><div class="tile-face tile-front"></div><div class="tile-face tile-back">${char}</div></div>`;
-                } else if (char === ' ') {
-                    tile.className = 'puzzle-tile space';
+            if (gameState.guessedLetters.includes(letter)) {
+                if (gameState.phase === 'BONUS_AWAITING_FLIP' || gameState.phase === 'BONUS_PICKING') {
+                    const front = tile.querySelector('.tile-front');
+                    if (front) {
+                        front.classList.add('highlight-glow');
+                    }
                 } else {
-                    tile.className = 'puzzle-tile punct'; tile.textContent = char;
+                    tile.classList.add('revealed');
                 }
-                rowDiv.appendChild(tile);
-            });
-            if (wi < wordGroup.length - 1) {
-                const space = document.createElement('div'); space.className = 'puzzle-tile space'; rowDiv.appendChild(space);
             }
         });
-        board.appendChild(rowDiv);
-    });
-    renderGuessedLettersDirect();
-}
-
-function renderGuessedLettersDirect() {
-    const tiles = document.querySelectorAll('.puzzle-tile[data-letter]');
-    if (tiles.length === 0) return;
-    tiles.forEach(tile => {
-        const letter = tile.dataset.letter;
-        if (animatingLetters.has(letter)) return;
-
-        if (gameState.guessedLetters.includes(letter)) {
-            if (gameState.phase === 'BONUS_AWAITING_FLIP' || gameState.phase === 'BONUS_PICKING') {
-                const front = tile.querySelector('.tile-front');
-                if (front) {
-                    front.classList.add('highlight-glow');
-                }
-            } else {
-                tile.classList.add('revealed');
-            }
-        }
-    });
-}
-
-function createAlphabet() {
-    const panel = document.getElementById('alphabet-panel'); panel.innerHTML = '';
-    FULL_ALPHABET.split('').forEach(letter => {
-        const btn = document.createElement('button');
-        btn.className = 'alphabet-key' + (VOWELS.includes(letter) ? ' vowel' : '');
-        btn.textContent = letter; btn.dataset.letter = letter;
-        btn.onclick = () => handleLetterGuess(letter);
-        panel.appendChild(btn);
-    });
-}
-
-function updateAlphabetUI() {
-    const active = getActivePlayer();
-    const myTurn = isMyTurn();
-    const currentVowelCost = getVowelCost();
-
-    document.querySelectorAll('.alphabet-key').forEach(btn => {
-        const letter = btn.dataset.letter;
-        const isVowel = VOWELS.includes(letter);
-        let disabled = !myTurn || gameState.guessedLetters.includes(letter) || gameState.spinInProgress || isSpectator;
-
-        if (gameState.bonusPickedConsonants.includes(letter) || gameState.bonusPickedVowel === letter) {
-            btn.classList.add('selected-bonus');
-        } else {
-            btn.classList.remove('selected-bonus');
-        }
-
-        if (gameState.phase === 'BONUS_PICKING') {
-            if (isVowel) {
-                disabled = disabled || !!gameState.bonusPickedVowel;
-            } else {
-                disabled = disabled || gameState.bonusPickedConsonants.includes(letter) || gameState.bonusPickedConsonants.length >= 5;
-            }
-        } else if (gameState.phase === 'BONUS_AWAITING_FLIP' || gameState.phase === 'BONUS_COUNTDOWN') {
-            disabled = true;
-        } else if (gameState.phase === 'IDLE') {
-            if (isVowel) {
-                disabled = disabled || active.score < currentVowelCost;
-            } else {
-                disabled = true;
-            }
-        } else if (gameState.phase === 'AWAITING_CONSONANT') {
-            if (isVowel) {
-                disabled = true;
-            }
-        } else {
-            disabled = true;
-        }
-        btn.disabled = disabled;
-    });
-}
-
-function updateHostMessage(msg, isImportant = false) {
-    gameState.hostMessage = msg;
-    const el = document.getElementById('host-message');
-    if (!el) return;
-    el.innerHTML = msg;
-    el.style.borderColor = isImportant ? 'var(--gold-color)' : 'rgba(244, 233, 216, 0.4)';
-}
-
-function drawWheel() {
-    const svg = document.getElementById('wheel'); 
-    if (!svg) return;
-    svg.innerHTML = '';
-    
-    if (!wheelSegments || wheelSegments.length === 0) {
-        wheelSegments = getWheelForRound(gameState.round || 1);
     }
 
-    const segCount = wheelSegments.length;
-    const step = 360 / segCount;
-    wheelSegments.forEach((seg, i) => {
-        const p1 = polarToCartesian(50, 50, 50, (i + 1) * step);
-        const p2 = polarToCartesian(50, 50, 50, i * step);
-        const d = `M 50 50 L ${p2.x} ${p2.y} A 50 50 0 0 1 ${p1.x} ${p1.y} Z`;
-        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        path.setAttribute("d", d); path.setAttribute("fill", seg.color || "#4caf50"); svg.appendChild(path);
+    function createAlphabet() {
+        const panel = document.getElementById('alphabet-panel'); panel.innerHTML = '';
+        FULL_ALPHABET.split('').forEach(letter => {
+            const btn = document.createElement('button');
+            btn.className = 'alphabet-key' + (VOWELS.includes(letter) ? ' vowel' : '');
+            btn.textContent = letter; btn.dataset.letter = letter;
+            btn.onclick = () => handleLetterGuess(letter);
+            panel.appendChild(btn);
+        });
+    }
+
+    function updateAlphabetUI() {
+        const active = getActivePlayer();
+        const myTurn = isMyTurn();
+        const currentVowelCost = getVowelCost();
+
+        document.querySelectorAll('.alphabet-key').forEach(btn => {
+            const letter = btn.dataset.letter;
+            const isVowel = VOWELS.includes(letter);
+            let disabled = !myTurn || gameState.guessedLetters.includes(letter) || gameState.spinInProgress || isSpectator;
+
+            if (gameState.bonusPickedConsonants.includes(letter) || gameState.bonusPickedVowel === letter) {
+                btn.classList.add('selected-bonus');
+            } else {
+                btn.classList.remove('selected-bonus');
+            }
+
+            if (gameState.phase === 'BONUS_PICKING') {
+                if (isVowel) {
+                    disabled = disabled || !!gameState.bonusPickedVowel;
+                } else {
+                    disabled = disabled || gameState.bonusPickedConsonants.includes(letter) || gameState.bonusPickedConsonants.length >= 5;
+                }
+            } else if (gameState.phase === 'BONUS_AWAITING_FLIP' || gameState.phase === 'BONUS_COUNTDOWN') {
+                disabled = true;
+            } else if (gameState.phase === 'IDLE') {
+                if (isVowel) {
+                    disabled = disabled || active.score < currentVowelCost;
+                } else {
+                    disabled = true;
+                }
+            } else if (gameState.phase === 'AWAITING_CONSONANT') {
+                if (isVowel) {
+                    disabled = true;
+                }
+            } else {
+                disabled = true;
+            }
+            btn.disabled = disabled;
+        });
+    }
+
+    function updateHostMessage(msg, isImportant = false) {
+        gameState.hostMessage = msg;
+        const el = document.getElementById('host-message');
+        if (!el) return;
+        el.innerHTML = msg;
+        el.style.borderColor = isImportant ? 'var(--gold-color)' : 'rgba(244, 233, 216, 0.4)';
+    }
+
+    function drawWheel() {
+        const svg = document.getElementById('wheel'); 
+        if (!svg) return;
+        svg.innerHTML = '';
         
-        const textAngle = i * step + step / 2;
-        const pos = polarToCartesian(50, 50, 35, textAngle);
-        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        text.setAttribute("x", pos.x); text.setAttribute("y", pos.y); text.setAttribute("fill", "#ffffff");
-        
-        let fontSize = 4.2;
-        if (seg.label.length > 12) fontSize = 2.6;
-        else if (seg.label.length > 8) fontSize = 3.1;
-        else if (seg.label.length > 5) fontSize = 3.6;
+        if (!wheelSegments || wheelSegments.length === 0) {
+            wheelSegments = getWheelForRound(gameState.round || 1);
+        }
 
-        text.setAttribute("font-size", fontSize + "px");
-        text.setAttribute("font-weight", "900"); 
-        text.setAttribute("text-anchor", "middle");
-        text.setAttribute("dominant-baseline", "middle");
-        text.setAttribute("transform", `rotate(${textAngle + 90} ${pos.x} ${pos.y})`);
-        text.style.filter = "drop-shadow(1px 1px 2px #000)";
-        text.textContent = seg.label; svg.appendChild(text);
-    });
-}
+        const segCount = wheelSegments.length;
+        const step = 360 / segCount;
+        wheelSegments.forEach((seg, i) => {
+            const p1 = polarToCartesian(50, 50, 50, (i + 1) * step);
+            const p2 = polarToCartesian(50, 50, 50, i * step);
+            const d = `M 50 50 L ${p2.x} ${p2.y} A 50 50 0 0 1 ${p1.x} ${p1.y} Z`;
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path.setAttribute("d", d); path.setAttribute("fill", seg.color || "#4caf50"); svg.appendChild(path);
+            
+            const textAngle = i * step + step / 2;
+            const pos = polarToCartesian(50, 50, 35, textAngle);
+            const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            text.setAttribute("x", pos.x); text.setAttribute("y", pos.y); text.setAttribute("fill", "#ffffff");
+            
+            let fontSize = 4.2;
+            if (seg.label.length > 12) fontSize = 2.6;
+            else if (seg.label.length > 8) fontSize = 3.1;
+            else if (seg.label.length > 5) fontSize = 3.6;
 
-function polarToCartesian(cx, cy, r, angleInDegrees) {
-    const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
-    return {
-        x: cx + (r * Math.cos(angleInRadians)),
-        y: cy + (r * Math.sin(angleInRadians))
-    };
-}
+            text.setAttribute("font-size", fontSize + "px");
+            text.setAttribute("font-weight", "900"); 
+            text.setAttribute("text-anchor", "middle");
+            text.setAttribute("dominant-baseline", "middle");
+            text.setAttribute("transform", `rotate(${textAngle + 90} ${pos.x} ${pos.y})`);
+            text.style.filter = "drop-shadow(1px 1px 2px #000)";
+            text.textContent = seg.label; svg.appendChild(text);
+        });
+    }
 
-function loadEditorWheelForRound() {
-    const select = document.getElementById('editor-round-select');
-    if (!select) return;
-    const r = select.value;
-    const segs = getWheelForRound(r);
-    const container = document.getElementById('editor-segments-container');
-    if (!container) return;
-    container.innerHTML = '';
+    function polarToCartesian(cx, cy, r, angleInDegrees) {
+        const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
+        return {
+            x: cx + (r * Math.cos(angleInRadians)),
+            y: cy + (r * Math.sin(angleInRadians))
+        };
+    }
 
-    segs.forEach((seg) => {
+    function loadEditorWheelForRound() {
+        const select = document.getElementById('editor-round-select');
+        if (!select) return;
+        const r = select.value;
+        const segs = getWheelForRound(r);
+        const container = document.getElementById('editor-segments-container');
+        if (!container) return;
+        container.innerHTML = '';
+
+        segs.forEach((seg) => {
+            const row = document.createElement('div');
+            row.className = 'editor-row';
+            row.innerHTML = `
+                <input type="text" class="editor-input editor-label" value="${seg.label}" placeholder="Címke">
+                <input type="text" class="editor-input editor-val" value="${seg.value}" placeholder="Érték">
+                <input type="color" class="editor-color" value="${seg.color || '#4caf50'}">
+                <button onclick="this.parentElement.remove()" style="background:#f44336; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">X</button>
+            `;
+            container.appendChild(row);
+        });
+    }
+
+    function addEditorSegmentRow() {
+        const container = document.getElementById('editor-segments-container');
+        if (!container) return;
         const row = document.createElement('div');
         row.className = 'editor-row';
         row.innerHTML = `
-            <input type="text" class="editor-input editor-label" value="${seg.label}" placeholder="Címke">
-            <input type="text" class="editor-input editor-val" value="${seg.value}" placeholder="Érték">
-            <input type="color" class="editor-color" value="${seg.color || '#4caf50'}">
+            <input type="text" class="editor-input editor-label" value="500" placeholder="Címke">
+            <input type="text" class="editor-input editor-val" value="500" placeholder="Érték">
+            <input type="color" class="editor-color" value="#4caf50">
             <button onclick="this.parentElement.remove()" style="background:#f44336; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">X</button>
         `;
         container.appendChild(row);
-    });
-}
-
-function addEditorSegmentRow() {
-    const container = document.getElementById('editor-segments-container');
-    if (!container) return;
-    const row = document.createElement('div');
-    row.className = 'editor-row';
-    row.innerHTML = `
-        <input type="text" class="editor-input editor-label" value="500" placeholder="Címke">
-        <input type="text" class="editor-input editor-val" value="500" placeholder="Érték">
-        <input type="color" class="editor-color" value="#4caf50">
-        <button onclick="this.parentElement.remove()" style="background:#f44336; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">X</button>
-    `;
-    container.appendChild(row);
-}
-
-function saveCustomWheelConfig() {
-    const select = document.getElementById('editor-round-select');
-    if (!select) return;
-    const r = select.value;
-    const rows = document.querySelectorAll('#editor-segments-container .editor-row');
-    let newSegs = [];
-
-    rows.forEach(row => {
-        const label = row.querySelector('.editor-label').value.trim();
-        const valRaw = row.querySelector('.editor-val').value.trim();
-        const color = row.querySelector('.editor-color').value;
-        const val = isNaN(valRaw) ? valRaw : parseInt(valRaw);
-
-        if (label) newSegs.push({ label, value: val, color });
-    });
-
-    if (gameState.round == r) {
-        wheelSegments = newSegs;
-        drawWheel();
     }
 
-    alert(`A(z) ${r}. forduló kereke frissítve!`);
-}
+    function saveCustomWheelConfig() {
+        const select = document.getElementById('editor-round-select');
+        if (!select) return;
+        const r = select.value;
+        const rows = document.querySelectorAll('#editor-segments-container .editor-row');
+        let newSegs = [];
 
-function setupLogoDev() {
-    const logoContainer = document.getElementById('logo-container');
-    if (!logoContainer) return;
-    logoContainer.onclick = () => {
-        logoClicks++;
-        if (logoClicks >= 5) {
-            logoClicks = 0;
-            loadEditorWheelForRound();
-            document.getElementById('dev-modal').classList.add('visible');
+        rows.forEach(row => {
+            const label = row.querySelector('.editor-label').value.trim();
+            const valRaw = row.querySelector('.editor-val').value.trim();
+            const color = row.querySelector('.editor-color').value;
+            const val = isNaN(valRaw) ? valRaw : parseInt(valRaw);
+
+            if (label) newSegs.push({ label, value: val, color });
+        });
+
+        if (gameState.round == r) {
+            wheelSegments = newSegs;
+            drawWheel();
         }
-    };
-    
-    const devCloseBtn = document.getElementById('dev-close-btn');
-    if (devCloseBtn) devCloseBtn.onclick = () => document.getElementById('dev-modal').classList.remove('visible');
-    
-    const devRevealBtn = document.getElementById('dev-reveal-btn');
-    if (devRevealBtn) {
-        devRevealBtn.onclick = () => {
-            document.querySelectorAll('.puzzle-tile[data-letter]').forEach(t => t.classList.add('revealed'));
-            document.getElementById('dev-modal').classList.remove('visible');
-        };
-    }
-}
 
-// =====================================================================
-// 🌍 GLOBÁLIS WINDOW KÖTÉSEK (HTML ONCLICK ESEMÉNYEKHEZ)
-// =====================================================================
-window.toggleMute = toggleMute;
-window.showLeaderboard = showLeaderboard;
-window.startSoloGame = startSoloGame;
-window.createOnlineDuelRoom = createOnlineDuelRoom;
-window.joinOnlineRoomPrompt = joinOnlineRoomPrompt;
-window.startBoosterCharge = startBoosterCharge;
-window.solvePuzzle = solvePuzzle;
-window.submitInlineBonusSolve = submitInlineBonusSolve;
-window.exitRoomAndReturnLobby = exitRoomAndReturnLobby;
-window.loadEditorWheelForRound = loadEditorWheelForRound;
-window.addEditorSegmentRow = addEditorSegmentRow;
-window.saveCustomWheelConfig = saveCustomWheelConfig;
-window.openStandaloneBlackjack = openStandaloneBlackjack;
-window.addChipBet = addChipBet;
-window.setBJBetMax = setBJBetMax;
-window.resetBJBet = resetBJBet;
-window.startBJHand = startBJHand;
-window.bjHit = bjHit;
-window.bjStand = bjStand;
-window.closeBlackjackModal = closeBlackjackModal;
-window.closeBJResultAndContinue = closeBJResultAndContinue;
-window.openStandaloneLuxor = openStandaloneLuxor;
-window.addLuxorChipBet = addLuxorChipBet;
-window.startLuxorGame = startLuxorGame;
-window.luxorDecision = luxorDecision;
-window.closeLuxorModal = closeLuxorModal;
+        alert(`A(z) ${r}. forduló kereke frissítve!`);
+    }
+
+    function setupLogoDev() {
+        const logoContainer = document.getElementById('logo-container');
+        if (!logoContainer) return;
+        logoContainer.onclick = () => {
+            logoClicks++;
+            if (logoClicks >= 5) {
+                logoClicks = 0;
+                loadEditorWheelForRound();
+                document.getElementById('dev-modal').classList.add('visible');
+            }
+        };
+        
+        const devCloseBtn = document.getElementById('dev-close-btn');
+        if (devCloseBtn) devCloseBtn.onclick = () => document.getElementById('dev-modal').classList.remove('visible');
+        
+        const devRevealBtn = document.getElementById('dev-reveal-btn');
+        if (devRevealBtn) {
+            devRevealBtn.onclick = () => {
+                document.querySelectorAll('.puzzle-tile[data-letter]').forEach(t => t.classList.add('revealed'));
+                document.getElementById('dev-modal').classList.remove('visible');
+            };
+        }
+    }
+
+    // =====================================================================
+    // 🌍 GLOBÁLIS WINDOW KÖTÉSEK (HTML ONCLICK ESEMÉNYEKHEZ)
+    // =====================================================================
+    window.toggleMute = toggleMute;
+    window.showLeaderboard = showLeaderboard;
+    window.startSoloGame = startSoloGame;
+    window.createOnlineDuelRoom = createOnlineDuelRoom;
+    window.joinOnlineRoomPrompt = joinOnlineRoomPrompt;
+    window.startBoosterCharge = startBoosterCharge;
+    window.solvePuzzle = solvePuzzle;
+    window.submitInlineBonusSolve = submitInlineBonusSolve;
+    window.exitRoomAndReturnLobby = exitRoomAndReturnLobby;
+    window.loadEditorWheelForRound = loadEditorWheelForRound;
+    window.addEditorSegmentRow = addEditorSegmentRow;
+    window.saveCustomWheelConfig = saveCustomWheelConfig;
+    window.openStandaloneBlackjack = openStandaloneBlackjack;
+    window.addChipBet = addChipBet;
+    window.setBJBetMax = setBJBetMax;
+    window.resetBJBet = resetBJBet;
+    window.startBJHand = startBJHand;
+    window.bjHit = bjHit;
+    window.bjStand = bjStand;
+    window.closeBlackjackModal = closeBlackjackModal;
+    window.closeBJResultAndContinue = closeBJResultAndContinue;
+    window.openStandaloneLuxor = openStandaloneLuxor;
+    window.addLuxorChipBet = addLuxorChipBet;
+    window.startLuxorGame = startLuxorGame;
+    window.luxorDecision = luxorDecision;
+    window.closeLuxorModal = closeLuxorModal;
 </script>
 </body>
 </html>
