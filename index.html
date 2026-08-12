@@ -10,7 +10,7 @@
     <style>
         :root {
             --bg-dark: #070913;
-            --bg-card: rgba(15, 20, 38, 0.82);
+            --bg-card: rgba(15, 20, 38, 0.85);
             --bg-card-solid: #0d1224;
             --border-color: rgba(255, 255, 255, 0.12);
             --border-glow: rgba(0, 229, 255, 0.45);
@@ -131,22 +131,16 @@
             justify-content: center; align-items: center; min-height: 480px;
         }
 
-        /* 🌟 LOBBY VIEW & LOGO */
+        /* 🌟 LOBBY VIEW */
         #lobby-view {
-            width: 100%; max-width: 620px; display: flex; flex-direction: column;
+            width: 100%; max-width: 580px; display: flex; flex-direction: column;
             align-items: center; justify-content: center; text-align: center; gap: 12px;
-        }
-
-        .main-brand-logo-svg {
-            width: 100%; max-width: 480px; height: auto;
-            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.35));
-            margin-bottom: 2px; overflow: visible;
         }
 
         .lobby-card-box {
             background: linear-gradient(145deg, rgba(15, 20, 38, 0.95), rgba(7, 9, 19, 0.98));
-            border: 1px solid var(--border-glow); border-radius: 16px; padding: 16px;
-            width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.6); display: flex; flex-direction: column; gap: 10px;
+            border: 1px solid var(--border-glow); border-radius: 16px; padding: 20px;
+            width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.6); display: flex; flex-direction: column; gap: 12px;
         }
 
         .lobby-section-title {
@@ -160,8 +154,8 @@
         }
 
         .lobby-btn {
-            width: 100%; padding: 12px 8px; font-family: var(--font-main); font-weight: 800;
-            font-size: 0.8rem; border-radius: 10px; border: 1px solid var(--border-color); cursor: pointer;
+            width: 100%; padding: 14px 10px; font-family: var(--font-main); font-weight: 800;
+            font-size: 0.85rem; border-radius: 10px; border: 1px solid var(--border-color); cursor: pointer;
             text-transform: uppercase; background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)); color: var(--text-main);
             letter-spacing: 0.5px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             display: flex; align-items: center; justify-content: center; gap: 6px; text-align: center;
@@ -366,7 +360,54 @@
         .modal-input { width: 100%; padding: 10px; font-size: 0.95rem; border-radius: 8px; border: 1px solid var(--border-glow); background: #070913; color: white; text-transform: uppercase; text-align: center; font-weight: bold; font-family: var(--font-mono); }
         .modal-buttons { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
 
-        /* CASINO STYLES */
+        /* 🏆 BEÉGETETT TOPLISTA STÍLUSOK (GÖRGETÉSMENTES) */
+        .leaderboard-modal-box {
+            max-width: 640px !important; width: 95vw !important; padding: 24px !important;
+            border: 2px solid var(--neon-gold) !important;
+            box-shadow: 0 0 40px rgba(255, 215, 0, 0.3) !important;
+            background: linear-gradient(145deg, rgba(13, 18, 36, 0.98), rgba(7, 9, 19, 0.99)) !important;
+            overflow: hidden !important;
+        }
+        .leaderboard-podium-container {
+            display: flex; flex-direction: column; gap: 8px; width: 100%; margin: 14px 0;
+        }
+        .leaderboard-item-card {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08); font-family: var(--font-mono);
+            transition: all 0.2s;
+        }
+        .leaderboard-item-card.rank-1 {
+            background: linear-gradient(90deg, rgba(255, 215, 0, 0.2), rgba(255, 152, 0, 0.05));
+            border-color: var(--neon-gold); box-shadow: 0 0 15px rgba(255, 215, 0, 0.25);
+        }
+        .leaderboard-item-card.rank-2 {
+            background: linear-gradient(90deg, rgba(192, 192, 192, 0.15), rgba(255, 255, 255, 0.02));
+            border-color: #c0c0c0;
+        }
+        .leaderboard-item-card.rank-3 {
+            background: linear-gradient(90deg, rgba(205, 127, 50, 0.15), rgba(255, 255, 255, 0.02));
+            border-color: #cd7f32;
+        }
+
+        /* ⚡ LÉZER MÁTRIX TÁBLA STÍLUSOK */
+        .mines-grid-container { 
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; 
+            max-width: 440px; width: 100%; margin: 12px auto; background: #070913; 
+            padding: 14px; border-radius: 18px; border: 2px solid var(--neon-cyan); 
+            box-shadow: 0 0 30px rgba(0, 229, 255, 0.25);
+        }
+        .mines-tile { 
+            aspect-ratio: 1 / 1; border-radius: 10px; border: 1.5px solid var(--border-color); 
+            background: linear-gradient(135deg, #111827, #1f2937); cursor: pointer; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            font-size: 1.4rem; transition: all 0.2s; font-family: var(--font-mono); font-weight: 900; 
+        }
+        .mines-tile:hover:not(.disabled) { border-color: var(--neon-cyan); box-shadow: 0 0 16px var(--neon-cyan); transform: scale(1.06); }
+        .mines-tile.safe { background: linear-gradient(135deg, #065f46, #047857) !important; border-color: var(--neon-green) !important; box-shadow: 0 0 16px var(--neon-green) !important; color: #ffffff; }
+        .mines-tile.mine { background: linear-gradient(135deg, #9f1239, #be123c) !important; border-color: var(--neon-red) !important; box-shadow: 0 0 20px var(--neon-red) !important; }
+
+        /* CASINO OTHER STYLES */
         .card-box {
             width: clamp(42px, 8vw, 58px); height: clamp(62px, 12vw, 84px);
             background: linear-gradient(145deg, #ffffff, #f0f4f8); color: #0f172a;
@@ -405,12 +446,6 @@
 
         .luxor-cell.drawn-pending { animation: pulsePendingBright 0.6s infinite ease-in-out !important; border: 2px solid #ffffff !important; z-index: 10 !important; }
         .luxor-cell.matched::before { content: ''; position: absolute; width: 80%; height: 80%; border: 3px solid var(--neon-cyan); border-radius: 50%; box-shadow: 0 0 8px var(--neon-cyan); }
-
-        .mines-grid-container { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; max-width: 320px; margin: 8px auto; background: #070913; padding: 8px; border-radius: 12px; border: 1px solid var(--neon-cyan); }
-        .mines-tile { aspect-ratio: 1 / 1; border-radius: 6px; border: 1px solid var(--border-color); background: linear-gradient(135deg, #1e293b, #0f172a); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 1.1rem; transition: all 0.15s; font-family: var(--font-mono); font-weight: 900; }
-        .mines-tile:hover:not(.disabled) { border-color: var(--neon-cyan); box-shadow: 0 0 10px var(--neon-cyan); transform: scale(1.04); }
-        .mines-tile.safe { background: linear-gradient(135deg, #065f46, #047857) !important; border-color: var(--neon-green) !important; box-shadow: 0 0 12px var(--neon-green) !important; color: #ffffff; }
-        .mines-tile.mine { background: linear-gradient(135deg, #9f1239, #be123c) !important; border-color: var(--neon-red) !important; box-shadow: 0 0 16px var(--neon-red) !important; }
 
         .lotto-ball { width: 40px; height: 42px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #ffffff 0%, #ffd700 50%, #b78103 100%); color: #000; font-weight: 900; font-size: 0.95rem; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #fff; font-family: var(--font-mono); flex-shrink: 0; box-shadow: 0 0 12px rgba(255,215,0,0.35); }
         .lotto-num-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; max-width: 400px; margin: 6px auto; background: #070913; padding: 6px; border-radius: 8px; border: 1px solid var(--border-color); }
@@ -491,42 +526,8 @@
 <div id="tv-container">
     <div id="screen">
         
-        <!-- 🌟 LOBBY VIEW WITH PERFECTLY FITTED SZERENCSEBAJNOK SVG LOGO -->
+        <!-- 🌟 LOBBY VIEW (KÖZÉPSŐ NAGY LOGÓ ELTÁVOLÍTVA) -->
         <div id="lobby-view">
-            <svg class="main-brand-logo-svg" viewBox="0 0 520 160">
-                <defs>
-                    <linearGradient id="bgRingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stop-color="#00e5ff"/>
-                        <stop offset="50%" stop-color="#8b5cf6"/>
-                        <stop offset="100%" stop-color="#ec4899"/>
-                    </linearGradient>
-                    <linearGradient id="textGoldGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stop-color="#ffffff"/>
-                        <stop offset="30%" stop-color="#fff5a0"/>
-                        <stop offset="70%" stop-color="#ffd700"/>
-                        <stop offset="100%" stop-color="#b78103"/>
-                    </linearGradient>
-                    <filter id="glowFilter" x="-20%" y="-20%" width="140%" height="140%">
-                        <feGaussianBlur stdDeviation="3" result="blur" />
-                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
-                    </filter>
-                    <!-- Íves szövegútvonal a tökéletes illeszkedéshez -->
-                    <path id="textArc" d="M 60 145 A 200 140 0 0 1 460 145" />
-                </defs>
-                
-                <circle cx="260" cy="185" r="135" fill="none" stroke="url(#bgRingGrad)" stroke-width="20" opacity="0.85" filter="url(#glowFilter)" />
-                <circle cx="260" cy="185" r="135" fill="none" stroke="#ffffff" stroke-width="2" stroke-dasharray="8 6" opacity="0.6"/>
-                
-                <path d="M 130 185 A 125 125 0 0 1 260 60" fill="none" stroke="#f43f5e" stroke-width="12"/>
-                <path d="M 260 60 A 125 125 0 0 1 390 185" fill="none" stroke="#10b981" stroke-width="12"/>
-                
-                <polygon points="260,80 268,100 290,103 274,117 278,139 260,127 242,139 246,117 230,103 252,100" fill="url(#textGoldGrad)" stroke="#ffffff" stroke-width="1.5"/>
-
-                <text font-family="'Outfit', sans-serif" font-weight="900" font-size="32" fill="url(#textGoldGrad)" stroke="#000000" stroke-width="1.5" letter-spacing="1.5" text-anchor="middle" filter="url(#glowFilter)">
-                    <textPath href="#textArc" startOffset="50%" text-anchor="middle">SZERENCSEBAJNOK</textPath>
-                </text>
-            </svg>
-
             <div class="lobby-card-box">
                 <div class="lobby-section-title">🎮 EGYÉNI KASZINÓ & JÁTÉKOK</div>
                 <div class="lobby-grid-buttons">
@@ -570,7 +571,7 @@
                     </div>
                 </div>
 
-                <!-- 💡 ÁLLANDÓ SEGÍTSÉG KIÍRÁS PÖRGETÉS UTÁN -->
+                <!-- 💡 KÖRÖNKÉNTI SEGÍTSÉG KIÍRÁS -->
                 <div id="active-hint-container">
                     💡 UTALÁS: <strong id="active-hint-text"></strong>
                 </div>
@@ -640,19 +641,31 @@
     </div>
 </div>
 
-<!-- ⚡ LÉZER MÁTRIX MODAL -->
+<!-- 🏆 BEÉGETETT KÁRTYÁS TOPLISTA MODAL (GÖRGETÉSMENTES) -->
+<div id="leaderboard-modal" class="modal-overlay">
+    <div class="modal-content leaderboard-modal-box">
+        <h3 style="font-size:1.4rem; color:var(--neon-gold); font-family:var(--font-mono); letter-spacing:2px;">🏆 HETI DICSŐSÉGCSARNOK</h3>
+        <p style="font-size:0.8rem; color:var(--text-muted); margin-top:-4px;">(Hétfő 0:00 - Vasárnap 23:59 közötti hivatalos ranglista)</p>
+        
+        <div id="leaderboard-list" class="leaderboard-podium-container"></div>
+        
+        <button class="action-btn" onclick="document.getElementById('leaderboard-modal').classList.remove('visible')" style="width:100%; margin-top:8px;">Bezárás</button>
+    </div>
+</div>
+
+<!-- ⚡ LÉZER MÁTRIX MODAL (KIBŐVÍTETT, PRÉMIUM TÁBLA) -->
 <div id="mines-modal" class="modal-overlay">
-    <div class="modal-content" style="max-width:500px;">
+    <div class="modal-content" style="max-width:540px;">
         <h3>⚡ LÉZER MÁTRIX</h3>
         
-        <div style="display:flex; justify-content:space-between; align-items:center; background:#070913; padding:6px 10px; border-radius:8px; font-family:var(--font-mono); font-size:0.8rem; flex-wrap:wrap; gap:4px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; background:#070913; padding:8px 12px; border-radius:10px; font-family:var(--font-mono); font-size:0.85rem; flex-wrap:wrap; gap:4px; border:1px solid var(--border-color);">
             <div>Egyenleg: <strong id="mines-user-balance" style="color:var(--neon-gold);">0 Ft</strong></div>
             <div>Tét: <strong id="mines-current-bet-display" style="color:var(--neon-cyan);">100 Ft</strong></div>
             <div>SZORZÓ: <strong id="mines-multiplier-display" style="color:var(--neon-green);">1.00x</strong></div>
         </div>
 
         <div id="mines-controls" style="display:flex; flex-direction:column; gap:6px;">
-            <div style="display:flex; justify-content:center; gap:4px; font-size:0.75rem; font-family:var(--font-mono); align-items:center;">
+            <div style="display:flex; justify-content:center; gap:6px; font-size:0.8rem; font-family:var(--font-mono); align-items:center;">
                 <span>LÉZEREK:</span>
                 <button class="top-btn" onclick="setMinesCount(1)" id="mine-btn-1">1 Lézer</button>
                 <button class="top-btn" onclick="setMinesCount(3)" id="mine-btn-3">3 Lézer</button>
@@ -665,11 +678,11 @@
                 <div class="casino-chip" onclick="addMinesChipBet(1000)">+1K</div>
                 <div class="casino-chip" onclick="addMinesChipBet(5000)">+5K</div>
             </div>
-            <button class="action-btn" id="mines-start-btn" onclick="startMinesGame()" style="width:100%;">🚀 JÁTÉK INDÍTÁSA</button>
+            <button class="action-btn" id="mines-start-btn" onclick="startMinesGame()" style="width:100%; font-size:0.95rem; padding:12px;">🚀 JÁTÉK INDÍTÁSA</button>
         </div>
 
         <div id="mines-cashout-container" style="display:none;">
-            <button class="action-btn" id="mines-cashout-btn" onclick="cashoutMinesGame()" style="width:100%; background:linear-gradient(135deg, var(--neon-green), #059669); color:#fff; font-size:1rem; padding:12px;">💰 KIFIZETÉS: 0 Ft</button>
+            <button class="action-btn" id="mines-cashout-btn" onclick="cashoutMinesGame()" style="width:100%; background:linear-gradient(135deg, var(--neon-green), #059669); color:#fff; font-size:1.05rem; padding:12px;">💰 KIFIZETÉS: 0 Ft</button>
         </div>
 
         <div class="mines-grid-container" id="mines-grid-board"></div>
@@ -837,15 +850,6 @@
     </div>
 </div>
 
-<div id="leaderboard-modal" class="modal-overlay">
-    <div class="modal-content" style="max-width:440px;">
-        <h3>🏆 HETI TOPLISTA</h3>
-        <p style="font-size:0.75rem; color:var(--text-muted); margin-top:-4px;">(Hétfő 0:00 - Vasárnap 23:59)</p>
-        <div id="leaderboard-list" style="text-align:left; margin:12px 0; max-height:220px; overflow-y:auto; font-size:0.85rem; font-family:var(--font-mono);"></div>
-        <button class="action-btn" onclick="document.getElementById('leaderboard-modal').classList.remove('visible')">Bezárás</button>
-    </div>
-</div>
-
 <!-- FIREBASE COMPAT SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
@@ -920,7 +924,12 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-function getWheelForRound(roundNum) {
+// KERÉK SZELETEK BEÁLLÍTÁSA KÖRÖNKÉNT (SEGÍTSÉG ÉS RABLÁS MEZŐKKEL)
+function getWheelForRound(roundNum, hintClaimedThisRound = false) {
+    let hintSeg = hintClaimedThisRound 
+        ? { label: "10000 Ft", value: 10000, color: "#a855f7" }
+        : { label: "SEGÍTSÉG", value: "hint", color: "#06b6d4" };
+
     if (roundNum === 1) {
         return [
             { label: "100 Ft", value: 100, color: "#10b981" },
@@ -932,7 +941,7 @@ function getWheelForRound(roundNum) {
             { label: "300 Ft", value: 300, color: "#3b82f6" },
             { label: "KIMARADSZ", value: "lose_turn", color: "#475569" },
             { label: "1500 Ft", value: 1500, color: "#f59e0b" },
-            { label: "SEGÍTSÉG", value: "hint", color: "#06b6d4" }
+            hintSeg
         ];
     } else if (roundNum === 2) {
         return [
@@ -942,10 +951,10 @@ function getWheelForRound(roundNum) {
             { label: "1500 Ft", value: 1500, color: "#ec4899" },
             { label: "2000 Ft", value: 2000, color: "#ffd700" },
             { label: "CSŐD", value: "bankrupt", color: "#f43f5e" },
-            { label: "750 Ft", value: 750, color: "#3b82f6" },
+            { label: "RABLÁS", value: "steal", color: "#dc2626" }, // 🏴‍☠️ RABLÁS MEZŐ!
             { label: "KIMARADSZ", value: "lose_turn", color: "#475569" },
             { label: "2500 Ft", value: 2500, color: "#f59e0b" },
-            { label: "SEGÍTSÉG", value: "hint", color: "#06b6d4" }
+            hintSeg
         ];
     } else {
         return [
@@ -955,15 +964,15 @@ function getWheelForRound(roundNum) {
             { label: "3000 Ft", value: 3000, color: "#ec4899" },
             { label: "5000 Ft", value: 5000, color: "#ffd700" },
             { label: "CSŐD", value: "bankrupt", color: "#f43f5e" },
-            { label: "1500 Ft", value: 1500, color: "#3b82f6" },
+            { label: "RABLÁS", value: "steal", color: "#dc2626" }, // 🏴‍☠️ RABLÁS MEZŐ!
             { label: "KIMARADSZ", value: "lose_turn", color: "#475569" },
             { label: "10000 Ft", value: 10000, color: "#a855f7" },
-            { label: "SEGÍTSÉG", value: "hint", color: "#06b6d4" }
+            hintSeg
         ];
     }
 }
 
-let wheelSegments = getWheelForRound(1);
+let wheelSegments = getWheelForRound(1, false);
 
 function toggleMute() {
     audioEnabled = !audioEnabled;
@@ -1339,7 +1348,7 @@ async function startSoloGame() {
     gameState.players[1].name = "Robot (Ödön)";
     document.getElementById('hud-p2').style.display = 'block';
     
-    wheelSegments = getWheelForRound(1); drawWheel();
+    wheelSegments = getWheelForRound(1, false); drawWheel();
     roomCode = Math.floor(1000 + Math.random() * 9000).toString();
     updateRoomBadge(roomCode, 0);
 
@@ -1356,7 +1365,7 @@ async function startSoloGame() {
     initRound(1, puz);
 }
 
-// 4-JEGYŰ KÓDDAL MŰKÖDŐ ONLINE SZOBÁK
+// ⚔️ ONLINE SZOBÁK HIBÁTLAN GRAFIKUS SZINKRONIZÁCIÓVAL
 async function createOnlineDuelRoom(type = 'wheel') {
     await ensurePlayerName();
     currentGameType = type; myPlayerIndex = 0; isSpectator = false;
@@ -1391,7 +1400,6 @@ async function joinOnlineRoomPrompt(type) {
     const room = await fbGet(`rooms/${code}`);
     if (!room) { alert(`A '${code}' kódú szoba nem található.`); return; }
 
-    showGameView();
     roomCode = code; currentGameType = room.gameType || 'wheel';
     gameState.mode = 'online_duel';
 
@@ -1405,6 +1413,7 @@ async function joinOnlineRoomPrompt(type) {
         await fbPatch(`rooms/${code}`, { spectatorsCount: newCount, updatedAt: Date.now() });
     }
 
+    showGameView();
     updateRoomBadge(roomCode, room.spectatorsCount || 0);
     subscribeToFirebaseRoom(roomCode);
 }
@@ -1466,12 +1475,11 @@ function syncStateFromRoom(room) {
     gameState.hintUnlocked = room.hintUnlocked || false;
     gameState.hintText = room.hintText || '';
 
-    // Ha a segítség fel van oldva, folyamatosan megjelenítjük a képernyőn!
+    // KÖRÖNKÉNTI SEGÍTSÉG KIÍRÁSA A KÉPERNYŐN
     const hintContainer = document.getElementById('active-hint-container');
     if (gameState.hintUnlocked && gameState.hintText) {
         hintContainer.style.display = 'block';
         document.getElementById('active-hint-text').textContent = gameState.hintText;
-        // Átalakítjuk a segítség mezőt a keréken 10 000 Ft-os mezőre!
         transformHintSliceToTenThousand();
     } else {
         hintContainer.style.display = 'none';
@@ -1479,8 +1487,7 @@ function syncStateFromRoom(room) {
 
     if (room.round && room.round !== gameState.round) {
         gameState.round = room.round;
-        wheelSegments = getWheelForRound(gameState.round);
-        if (gameState.hintUnlocked) transformHintSliceToTenThousand();
+        wheelSegments = getWheelForRound(gameState.round, gameState.hintUnlocked);
         drawWheel();
         document.getElementById('round-display').textContent = `Forduló: ${gameState.round}/3`;
     }
@@ -1585,19 +1592,23 @@ function initRound(roundNum, puzzle) {
     gameState.phase = 'IDLE';
     gameState.currentPuzzle = puzzle;
     
+    // AZ ELŐZŐ KÖRÖS SEGÍTSÉG TÖRLÉSE A KÉPERNYŐRŐL ÉS A SEGÍTSÉG VISSZAÁLLÍTÁSA A KERÉKRE!
+    gameState.hintUnlocked = false;
+    gameState.hintText = '';
+    document.getElementById('active-hint-container').style.display = 'none';
+
     // FORDULÓK ÉS KASSZA SZABÁLYZAT:
     if (roundNum === 3) {
-        // 3. körben azonnal a kasszában lévő nyereménnyel játszunk!
+        // 3. körben az eddigi teljes kasszában lévő nyereménnyel játszunk azonnal!
         gameState.players[0].score = gameState.players[0].totalScore;
         gameState.players[1].score = gameState.players[1].totalScore;
     } else {
-        // 1. és 2. körben újra nulláról gyűjtögetnek a játékosok
+        // 1. és 2. körben újra gyűjtögetnek a játékosok
         gameState.players[0].score = 0;
         gameState.players[1].score = 0;
     }
 
-    wheelSegments = getWheelForRound(roundNum);
-    if (gameState.hintUnlocked) transformHintSliceToTenThousand();
+    wheelSegments = getWheelForRound(roundNum, false);
     drawWheel();
 
     document.getElementById('inline-solve-box').style.display = 'none';
@@ -1709,7 +1720,6 @@ function executeSyncedSpin(startRotation, endRotation, startTime, duration, land
         
         if (wheelEl) wheelEl.style.transform = `rotate(${currentPos}deg)`;
         
-        // REALTIME PEGGING & POINTER SNAP PHYSICS
         const currentSeg = Math.floor(currentPos / segAngle);
         if (currentSeg !== lastSeg) { 
             lastSeg = currentSeg; 
@@ -1736,17 +1746,37 @@ function executeSyncedSpin(startRotation, endRotation, startTime, duration, land
 
 function handleSpinResult(seg) {
     const active = getActivePlayer();
+    
+    // CSŐD MEZŐ
     if (seg.value === 'bankrupt') {
         active.score = 0; updateHostMessage(`<strong>CSŐD!</strong> ${active.name} pontjai elvesztek!`);
         setTimeout(switchTurn, 1800); return;
     }
+    
+    // KIMARADSZ MEZŐ
     if (seg.value === 'lose_turn') {
         AudioEngine.playWrong();
         updateHostMessage(`<strong>KIMARADSZ!</strong> A pörgetés joga átkerül!`);
         setTimeout(switchTurn, 1800); return;
     }
+
+    // 🏴‍☠️ RABLÁS MEZŐ (ELRABOLJA AZ ELLENFÉL ÖSSZES PÉNZÉT!)
+    if (seg.value === 'steal') {
+        AudioEngine.playCoinSound();
+        const oppIdx = gameState.activePlayerIndex === 0 ? 1 : 0;
+        const stolenAmount = gameState.players[oppIdx].score;
+
+        active.score += stolenAmount;
+        gameState.players[oppIdx].score = 0;
+
+        showLetterCallAnnouncement(active.name, `🏴‍☠️ RABLÁS! (+${stolenAmount.toLocaleString()} Ft)`);
+        updateHostMessage(`🏴‍☠️ <strong>RABLÁS!</strong> ${active.name} elrabolta ${gameState.players[oppIdx].name} összes pontját (+${stolenAmount.toLocaleString()} Ft)!`);
+        
+        gameState.phase = 'IDLE';
+        pushStateToFirebase(); updateUI(); return;
+    }
     
-    // SEGÍTSÉG / 10 000 FT MEZŐ
+    // SEGÍTSÉG MEZŐ
     if (seg.value === 'hint') {
         AudioEngine.playCorrect();
         const hintMsg = gameState.currentPuzzle?.hint || "Ez egy klasszikus magyar feladvány.";
@@ -1763,7 +1793,7 @@ function handleSpinResult(seg) {
         
         showModal({
             title: "💡 SEGÍTSÉG KIPÖRGETVE!",
-            text: `Gratulálunk! Kipörgetted a SEGÍTSÉG mezőt!<br>A kapott utalás végig kint marad a képernyőn:<br><br><strong style="color:var(--neon-cyan); font-size:1.1rem; background:rgba(0,229,255,0.1); padding:8px 14px; border-radius:8px; border:1px solid var(--neon-cyan); display:inline-block; margin-top:6px;">"${hintMsg}"</strong><br><br>A SEGÍTSÉG mező helyén mostantól <strong>10 000 Ft</strong> található!`,
+            text: `Gratulálunk! Kipörgetted a SEGÍTSÉG mezőt!<br>A kapott utalás ezen forduló végéig kint marad a képernyőn:<br><br><strong style="color:var(--neon-cyan); font-size:1.1rem; background:rgba(0,229,255,0.1); padding:8px 14px; border-radius:8px; border:1px solid var(--neon-cyan); display:inline-block; margin-top:6px;">"${hintMsg}"</strong><br><br>A SEGÍTSÉG mező helyén ebben a fordulóban mostantól <strong>10 000 Ft</strong> található!`,
             showCancel: false, confirmText: "Kiváló!"
         });
 
@@ -1945,7 +1975,7 @@ async function useHintOption() {
 
         await showModal({
             title: "💡 UTALÁS A FELADVÁNYHOZ",
-            text: `A segítség levonva (-${cost.toLocaleString()} Ft). Az utalás kint marad a képernyőn:<br><br><strong style="color:var(--neon-cyan); font-size:1.1rem; background:rgba(0,229,255,0.1); padding:8px 14px; border-radius:8px; border:1px solid var(--neon-cyan); display:inline-block; margin-top:6px;">"${hintMsg}"</strong>`,
+            text: `A segítség levonva (-${cost.toLocaleString()} Ft). Az utalás a forduló végéig kint marad:<br><br><strong style="color:var(--neon-cyan); font-size:1.1rem; background:rgba(0,229,255,0.1); padding:8px 14px; border-radius:8px; border:1px solid var(--neon-cyan); display:inline-block; margin-top:6px;">"${hintMsg}"</strong>`,
             showCancel: false, confirmText: "Rendben"
         });
 
@@ -2234,7 +2264,7 @@ function polarToCartesian(cx, cy, r, angleInDegrees) {
 }
 
 // =====================================================================
-// ⚡ LÉZER MÁTRIX ENGINE (LOGIKAI DETEKTOR)
+// ⚡ LÉZER MÁTRIX ENGINE (NAGYOBB TÁBLA, PRÉMIUM DETEKTOR)
 // =====================================================================
 let minesBet = 100;
 let minesCount = 3;
@@ -2304,7 +2334,6 @@ function renderMinesGrid() {
     }
 }
 
-// LOGIKAI SEGÍTSÉG: KISZÁMOLJA A SZOMSZÉDOS LÉZEREK SZÁMÁT (AKNAKERESŐ LOGIKA)
 function countAdjacentLasers(idx) {
     const row = Math.floor(idx / 5);
     const col = idx % 5;
@@ -2384,9 +2413,8 @@ function handleMinesTileClick(idx) {
         AudioEngine.playCoinSound();
         el.className = 'mines-tile safe';
 
-        // LÉZER DETEKTOR LOGIKA: KIÍRJA A SZOMSZÉDOS LÉZEREK SZÁMÁT!
         const adjLasers = countAdjacentLasers(idx);
-        el.innerHTML = `💎<span style="font-size:0.65rem; color:var(--neon-gold);">${adjLasers > 0 ? adjLasers : ''}</span>`;
+        el.innerHTML = `💎<span style="font-size:0.75rem; color:var(--neon-gold); font-weight:800;">${adjLasers > 0 ? adjLasers : ''}</span>`;
 
         const mult = minesMultipliers[minesRevealedCount - 1] || 1.0;
         const currentWin = Math.floor(minesBet * mult);
@@ -3214,7 +3242,7 @@ function closeSzerencseLottoModal() {
     showLobbyView();
 }
 
-// 🏆 TOPLISTA
+// 🏆 BEÉGETETT KÁRTYÁS TOPLISTA
 async function saveLeaderboardScoreFirebase(name, score) {
     if (!name || score <= 0 || isSpectator) return;
     if (name.includes('Robot') || name.includes('Ödön')) return;
@@ -3253,14 +3281,25 @@ async function showLeaderboard() {
 
     lbList.sort((a, b) => b.score - a.score);
 
-    let html = '<ol style="padding-left:18px; font-family:var(--font-mono);">';
+    let html = '';
     if (lbList.length > 0) {
-        lbList.forEach((item, i) => {
-            const crown = (i === 0) ? '👑 ' : '';
-            html += `<li style="margin-bottom:4px;">${crown}<strong>${item.name}</strong>: <span style="color:var(--neon-gold);">${item.score.toLocaleString()} Ft</span></li>`;
+        lbList.slice(0, 5).forEach((item, i) => {
+            const rankClass = i === 0 ? 'rank-1' : (i === 1 ? 'rank-2' : (i === 2 ? 'rank-3' : ''));
+            const badgeIcon = i === 0 ? '🥇 1. HELY' : (i === 1 ? '🥈 2. HELY' : (i === 2 ? '🥉 3. HELY' : `🎗️ ${i + 1}. HELY`));
+            
+            html += `
+                <div class="leaderboard-item-card ${rankClass}">
+                    <div>
+                        <div style="font-size:0.7rem; color:var(--text-muted); font-weight:bold;">${badgeIcon}</div>
+                        <div style="font-size:1rem; font-weight:900; color:#fff;">${item.name}</div>
+                    </div>
+                    <div style="font-size:1.15rem; font-weight:900; color:var(--neon-gold);">${item.score.toLocaleString()} Ft</div>
+                </div>
+            `;
         });
-    } else { html += '<li>Még nincs regisztrált heti eredmény.</li>'; }
-    html += '</ol>';
+    } else { 
+        html = '<div style="color:var(--text-muted); padding:20px 0;">Még nincs regisztrált heti eredmény a csarnokban.</div>'; 
+    }
 
     document.getElementById('leaderboard-list').innerHTML = html;
     document.getElementById('leaderboard-modal').classList.add('visible');
