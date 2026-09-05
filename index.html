@@ -3,10 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SzerencseBajnok</title>
+    <title>SzerencseBajnok - Mesterkiadás</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&family=Inter:wght@500;700;900&display=swap" rel="stylesheet">
+
+    <!-- Firebase Realtime Database SDK (Hivatalos verzió) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
     <style>
         :root {
             --bg-dark: #070913;
@@ -50,11 +55,10 @@
             overflow-x: hidden;
         }
 
-        /* 👑 TOP HEADER */
         header { 
             width: 100%; max-width: 1100px; 
             display: flex; justify-content: space-between; align-items: center; 
-            margin-bottom: 8px; position: relative; gap: 8px; flex-shrink: 0;
+            margin-bottom: 6px; position: relative; gap: 8px; flex-shrink: 0;
         }
 
         .brand-top-left {
@@ -84,11 +88,10 @@
         .top-btn:hover { background: var(--neon-cyan); color: #000; border-color: var(--neon-cyan); box-shadow: 0 0 12px var(--neon-cyan); }
         .top-btn.mute { background: rgba(255,255,255,0.05); color: var(--text-muted); }
 
-        /* 🪪 PLAYER CARD */
         #player-namecard-card {
             background: linear-gradient(135deg, rgba(15, 20, 38, 0.95), rgba(7, 9, 19, 0.95));
             border: 1px solid var(--border-glow);
-            border-radius: 12px; padding: 6px 14px; margin-bottom: 8px;
+            border-radius: 12px; padding: 6px 14px; margin-bottom: 6px;
             box-shadow: 0 0 20px rgba(0, 229, 255, 0.15);
             display: flex; align-items: center; justify-content: space-between; gap: 10px;
             width: 100%; max-width: 1100px; backdrop-filter: blur(12px); flex-shrink: 0;
@@ -109,6 +112,14 @@
         .namecard-stat-label { font-size: 0.6rem; color: var(--text-muted); letter-spacing: 1px; }
         .namecard-stat-value { font-size: 1rem; font-weight: 800; color: var(--neon-gold); }
 
+        #puzzle-count-live-badge {
+            width: 100%; max-width: 1100px; background: rgba(0, 229, 255, 0.08);
+            border: 1px solid rgba(0, 229, 255, 0.25); border-radius: 8px;
+            padding: 5px 14px; font-size: 0.78rem; font-family: var(--font-mono);
+            color: #a5f3fc; display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 8px; font-weight: 700;
+        }
+
         #room-info-badge {
             font-weight: 700; color: var(--neon-gold); font-size: 0.75rem;
             background: rgba(7, 9, 19, 0.85); backdrop-filter: blur(8px);
@@ -116,7 +127,6 @@
             display: inline-block; font-family: var(--font-mono); box-shadow: 0 0 10px rgba(255,215,0,0.2);
         }
 
-        /* 📺 MAIN CONTAINER */
         #tv-container {
             width: 100%; max-width: 1100px; background: rgba(15, 20, 38, 0.75);
             backdrop-filter: blur(16px); border: 1px solid var(--border-glow);
@@ -131,7 +141,6 @@
             justify-content: center; align-items: center; min-height: 480px;
         }
 
-        /* 🌟 LOBBY VIEW */
         #lobby-view {
             width: 100%; max-width: 580px; display: flex; flex-direction: column;
             align-items: center; justify-content: center; text-align: center; gap: 12px;
@@ -168,31 +177,30 @@
             box-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
         }
 
-        /* 🎮 GAME AREA */
         #game-area { display: none; width: 100%; height: 100%; gap: 14px; flex-direction: row; justify-content: center; align-items: stretch; }
         #puzzle-section { flex: 1.3; min-width: 280px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 8px; }
         
         #puzzle-category {
-            background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(0, 229, 255, 0.3));
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.35), rgba(0, 229, 255, 0.35));
             color: #ffffff; padding: 6px 20px; border-radius: 10px;
-            font-size: clamp(0.85rem, 1.8vw, 1.15rem); border: 1px solid var(--neon-cyan);
+            font-size: clamp(0.85rem, 1.8vw, 1.15rem); border: 1.5px solid var(--neon-cyan);
             font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; text-align: center;
-            box-shadow: 0 0 15px rgba(0, 229, 255, 0.2); width: 100%; max-width: 380px;
+            box-shadow: 0 0 18px rgba(0, 229, 255, 0.25); width: 100%; max-width: 440px;
         }
 
         #puzzle-board-wrapper {
             width: 100%; background: linear-gradient(145deg, rgba(15, 20, 38, 0.85), rgba(7, 9, 19, 0.95));
-            border: 1.5px solid var(--neon-cyan); border-radius: 14px; padding: 10px 6px;
+            border: 1.5px solid var(--neon-cyan); border-radius: 14px; padding: 12px 6px;
             box-shadow: 0 0 20px rgba(0, 229, 255, 0.15);
-            display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 140px; flex: 1;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 150px; flex: 1;
         }
-        #puzzle-board { display: flex; flex-direction: column; gap: 8px; width: 100%; justify-content: center; align-items: center; }
-        .puzzle-row { display: flex; justify-content: center; align-items: center; gap: 5px; width: 100%; flex-wrap: wrap; padding: 3px 0; }
-        /* 📱 Mobil: 18x26px -> 💻 Asztali gép: akár 46x62px nagy kártyák! */
-        .puzzle-tile { width: clamp(18px, 3.2vw, 46px); height: clamp(26px, 4.4vw, 62px); perspective: 1000px; flex-shrink: 0; }
-        .tile-inner { position: relative; width: 100%; height: 100%; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
+        #puzzle-board { display: flex; flex-direction: column; gap: 6px; width: 100%; justify-content: center; align-items: center; }
+        .puzzle-row { display: flex; justify-content: center; align-items: center; gap: 4px; width: 100%; flex-wrap: wrap; padding: 2px 0; }
+        
+        .puzzle-tile { width: clamp(18px, 3.1vw, 44px); height: clamp(26px, 4.3vw, 58px); perspective: 1000px; flex-shrink: 0; }
+        .tile-inner { position: relative; width: 100%; height: 100%; transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
         .puzzle-tile.revealed .tile-inner { transform: rotateY(180deg); }
-        .tile-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; justify-content: center; align-items: center; border-radius: 6px; }
+        .tile-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; justify-content: center; align-items: center; border-radius: 5px; }
         
         .tile-front { 
             background: linear-gradient(135deg, #1e293b, #0f172a); 
@@ -210,32 +218,32 @@
 
         .tile-back { 
             background: linear-gradient(135deg, #fffbeb, #fef08a); 
-            color: #0f172a; font-weight: 900; font-size: clamp(0.85rem, 2.2vw, 1.65rem); 
+            color: #0f172a; font-weight: 900; font-size: clamp(0.85rem, 2.2vw, 1.55rem); 
             transform: rotateY(180deg); border: 2px solid var(--neon-gold); 
             font-family: var(--font-mono); box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4); 
         }
-        .puzzle-tile.space { background: transparent; border: none; width: clamp(6px, 1.2vw, 16px); }
+        .puzzle-tile.space { background: transparent; border: none; width: clamp(5px, 1.1vw, 14px); }
         .puzzle-tile.space .tile-inner { display: none; }
         .puzzle-tile.punct { 
             background: var(--neon-gold); color: #000; font-weight: 900; 
-            font-size: clamp(0.85rem, 2.2vw, 1.65rem); border-radius: 6px; 
+            font-size: clamp(0.85rem, 2.2vw, 1.55rem); border-radius: 5px; 
             display: flex; justify-content: center; align-items: center; 
-            height: clamp(26px, 4.4vw, 62px); width: clamp(18px, 3.2vw, 46px); flex-shrink: 0; 
+            height: clamp(26px, 4.3vw, 58px); width: clamp(18px, 3.1vw, 44px); flex-shrink: 0; 
             font-family: var(--font-mono); box-shadow: 0 0 10px var(--neon-gold); 
         }
 
-       #alphabet-panel { 
-            display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; 
+        #alphabet-panel { 
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; 
             background: rgba(0,0,0,0.45); padding: 8px 6px; border-radius: 12px; 
             border: 1px solid var(--border-color); width: 100%; 
         }
 
         .alphabet-key {
-            min-width: 26px; height: 36px; font-weight: 800; border-radius: 6px;
+            min-width: 25px; height: 34px; font-weight: 800; border-radius: 6px;
             border: 1px solid rgba(255, 255, 255, 0.18); cursor: pointer; 
             background: rgba(255, 255, 255, 0.08);
-            color: var(--text-main); font-size: 0.86rem; padding: 0 4px; font-family: var(--font-mono);
-            transition: all 0.18s ease; flex: 1 0 auto; max-width: 36px;
+            color: var(--text-main); font-size: 0.85rem; padding: 0 3px; font-family: var(--font-mono);
+            transition: all 0.15s ease; flex: 1 0 auto; max-width: 35px;
             display: flex; align-items: center; justify-content: center;
         }
 
@@ -245,51 +253,35 @@
             color: var(--neon-cyan); 
         }
 
-        /* ✨ VÁLASZTHATÓ, AKTÍV BETŰK KIEMELÉSE */
-        .alphabet-key.available-pulse {
-            background: linear-gradient(135deg, var(--neon-gold), #ff9800) !important;
-            color: #000000 !important;
-            border-color: #ffffff !important;
-            font-weight: 900 !important;
-            box-shadow: 0 0 10px var(--neon-gold);
-            transform: translateY(-1px);
-        }
-        .alphabet-key.available-pulse.vowel {
-            background: linear-gradient(135deg, var(--neon-cyan), #0284c7) !important;
-            box-shadow: 0 0 10px var(--neon-cyan);
-        }
-
         .alphabet-key:hover:not(:disabled) { 
             transform: scale(1.12); 
             box-shadow: 0 0 12px #ffffff; 
         }
 
-        /* 🔒 MÉG SZABAD, DE ÉPPEN VÁRAKOZÓ BETŰK */
         .alphabet-key:disabled:not(.used) {
-            opacity: 0.5;
+            opacity: 0.45;
             cursor: not-allowed;
             background: rgba(255, 255, 255, 0.03);
             border-color: rgba(255, 255, 255, 0.08);
-            color: rgba(255, 255, 255, 0.45);
+            color: rgba(255, 255, 255, 0.4);
         }
 
-        /* ⬛ MÁR LEKÉRT, ELHASZNÁLT BETŰK (ERŐSEN ELSZÜRKÍTVE ÉS ÁTHÚZVA) */
         .alphabet-key.used {
             background: rgba(5, 7, 15, 0.95) !important;
             color: rgba(255, 255, 255, 0.18) !important;
             border-color: rgba(255, 255, 255, 0.04) !important;
             cursor: not-allowed !important;
-            opacity: 0.2 !important;
+            opacity: 0.25 !important;
             text-decoration: line-through !important;
             filter: grayscale(100%) !important;
             box-shadow: none !important;
             transform: none !important;
         }
+
         #game-controls-section { flex: 1; min-width: 290px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 10px; }
         
-        /* ⚙️ 4K TŰÉLES SZERENCSEKERÉK (Asztalin 300px, mobilon 210px) */
-        #wheel-wrapper { width: 100%; max-width: 300px; position: relative; aspect-ratio: 1 / 1; margin: 0 auto; }
-        #booster-container { width: 100%; max-width: 300px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        #wheel-wrapper { width: 100%; max-width: 290px; position: relative; aspect-ratio: 1 / 1; margin: 0 auto; }
+        #booster-container { width: 100%; max-width: 290px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
         
         #wheel-pointer { 
             width: 0; height: 0; 
@@ -317,7 +309,6 @@
         #spin-hub-btn:hover:not(:disabled) { background: var(--neon-gold); color: #000; box-shadow: 0 0 22px var(--neon-gold); }
         #spin-hub-btn:disabled { opacity: 0.3; cursor: not-allowed; border-color: #444; box-shadow: none; }
 
-        #booster-container { width: 100%; max-width: 250px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
         #booster-label { font-size: 0.65rem; color: var(--text-muted); font-weight: 700; font-family: var(--font-mono); letter-spacing: 1px; }
         #booster-bar-outer { width: 100%; height: 8px; background: rgba(0,0,0,0.5); border-radius: 4px; border: 1px solid var(--border-color); overflow: hidden; }
         #booster-bar-inner { width: 0%; height: 100%; background: linear-gradient(90deg, var(--neon-cyan), var(--neon-gold), var(--neon-red)); transition: width 0.05s linear; box-shadow: 0 0 8px var(--neon-gold); }
@@ -354,7 +345,6 @@
         .action-btn:disabled { opacity: 0.3; cursor: not-allowed; box-shadow: none; transform: none; }
         .action-btn.hint-btn { background: linear-gradient(135deg, var(--neon-cyan), #0284c7); color: #000; box-shadow: 0 3px 10px rgba(0,229,255,0.25); }
 
-        /* 🚀 ANNOUNCE TOAST */
         #letter-announce-toast {
             position: fixed; top: 38%; left: 50%; transform: translate(-50%, -50%) scale(0.7);
             background: rgba(7, 9, 19, 0.95); backdrop-filter: blur(20px);
@@ -373,7 +363,6 @@
             background: rgba(0,229,255,0.15); border-radius: 10px; border: 1px solid var(--neon-cyan); padding: 2px 16px; display: inline-block;
         }
 
-        /* 🔲 MODALS */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(5, 7, 15, 0.92); backdrop-filter: blur(14px);
@@ -392,7 +381,6 @@
         .modal-input { width: 100%; padding: 10px; font-size: 0.95rem; border-radius: 8px; border: 1px solid var(--border-glow); background: #070913; color: white; text-transform: uppercase; text-align: center; font-weight: bold; font-family: var(--font-mono); }
         .modal-buttons { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
 
-        /* 🏆 BEÉGETETT TOPLISTA STÍLUSOK (GÖRGETÉSMENTES) */
         .leaderboard-modal-box {
             max-width: 640px !important; width: 95vw !important; padding: 24px !important;
             border: 2px solid var(--neon-gold) !important;
@@ -413,16 +401,7 @@
             background: linear-gradient(90deg, rgba(255, 215, 0, 0.2), rgba(255, 152, 0, 0.05));
             border-color: var(--neon-gold); box-shadow: 0 0 15px rgba(255, 215, 0, 0.25);
         }
-        .leaderboard-item-card.rank-2 {
-            background: linear-gradient(90deg, rgba(192, 192, 192, 0.15), rgba(255, 255, 255, 0.02));
-            border-color: #c0c0c0;
-        }
-        .leaderboard-item-card.rank-3 {
-            background: linear-gradient(90deg, rgba(205, 127, 50, 0.15), rgba(255, 255, 255, 0.02));
-            border-color: #cd7f32;
-        }
 
-        /* ⚡ LÉZER MÁTRIX TÁBLA STÍLUSOK */
         .mines-grid-container { 
             display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; 
             max-width: 440px; width: 100%; margin: 12px auto; background: #070913; 
@@ -435,11 +414,9 @@
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
             font-size: 1.4rem; transition: all 0.2s; font-family: var(--font-mono); font-weight: 900; 
         }
-        .mines-tile:hover:not(.disabled) { border-color: var(--neon-cyan); box-shadow: 0 0 16px var(--neon-cyan); transform: scale(1.06); }
         .mines-tile.safe { background: linear-gradient(135deg, #065f46, #047857) !important; border-color: var(--neon-green) !important; box-shadow: 0 0 16px var(--neon-green) !important; color: #ffffff; }
         .mines-tile.mine { background: linear-gradient(135deg, #9f1239, #be123c) !important; border-color: var(--neon-red) !important; box-shadow: 0 0 20px var(--neon-red) !important; }
 
-        /* CASINO OTHER STYLES */
         .card-box {
             width: clamp(42px, 8vw, 58px); height: clamp(62px, 12vw, 84px);
             background: linear-gradient(145deg, #ffffff, #f0f4f8); color: #0f172a;
@@ -460,9 +437,7 @@
             font-size: 0.7rem; color: #ffffff; cursor: pointer; background: radial-gradient(circle, #8b5cf6, #4c1d95);
             box-shadow: 0 3px 10px rgba(139,92,246,0.4); transition: all 0.15s; font-family: var(--font-mono);
         }
-        .casino-chip:hover { transform: translateY(-2px) scale(1.08); box-shadow: 0 0 14px var(--neon-cyan); }
 
-        /* 🍀 LÁTVÁNYOS, NAGY LUXOR SZELVÉNY STÍLUSOK */
         .luxor-ticket-container { 
             max-width: 440px; width: 100%; margin: 8px auto; 
             background: linear-gradient(145deg, rgba(13, 18, 36, 0.95), rgba(7, 9, 19, 0.98)); 
@@ -473,10 +448,6 @@
             display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; 
             text-align: center; font-family: var(--font-mono); font-size: 1.25rem; 
             font-weight: 900; color: var(--neon-cyan); margin-bottom: 8px; 
-        }
-        .luxor-header-row span {
-            background: rgba(0, 229, 255, 0.12); padding: 4px 0; border-radius: 6px;
-            border: 1px solid rgba(0, 229, 255, 0.3); text-shadow: 0 0 8px var(--neon-cyan);
         }
         .luxor-grid { 
             display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; 
@@ -490,9 +461,6 @@
             transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
             position: relative; font-family: var(--font-mono); 
         }
-        .luxor-cell:hover:not(.matched) {
-            transform: scale(1.06); box-shadow: 0 0 12px var(--neon-cyan);
-        }
         .luxor-cell.keret { 
             background: rgba(139, 92, 246, 0.18); color: #ddd6fe; 
             border: 1.5px solid rgba(139, 92, 246, 0.45); 
@@ -501,31 +469,10 @@
             background: rgba(255, 215, 0, 0.18); color: #fef08a; 
             border: 1.5px solid rgba(255, 215, 0, 0.45); 
         }
-        .luxor-cell.lucky-picked { 
-            border: 2.5px solid var(--neon-gold) !important; 
-            background: rgba(255, 215, 0, 0.45) !important; 
-            box-shadow: 0 0 15px var(--neon-gold);
-        }
-        
-        @keyframes pulsePendingBright {
-            0% { transform: scale(0.96); box-shadow: 0 0 8px var(--neon-gold); background: rgba(255, 215, 0, 0.3); }
-            50% { transform: scale(1.08); box-shadow: 0 0 25px var(--neon-gold), 0 0 10px #ffffff; background: var(--neon-gold) !important; color: #000000 !important; font-weight: 900; }
-            100% { transform: scale(0.96); box-shadow: 0 0 8px var(--neon-gold); background: rgba(255, 215, 0, 0.3); }
-        }
-
-        .luxor-cell.drawn-pending { 
-            animation: pulsePendingBright 0.6s infinite ease-in-out !important; 
-            border: 2px solid #ffffff !important; z-index: 10 !important; 
-        }
         .luxor-cell.matched {
             background: rgba(0, 229, 255, 0.25) !important;
             color: #ffffff !important;
             border-color: var(--neon-cyan) !important;
-        }
-        .luxor-cell.matched::before { 
-            content: ''; position: absolute; width: 84%; height: 84%; 
-            border: 3.5px solid var(--neon-cyan); border-radius: 50%; 
-            box-shadow: 0 0 12px var(--neon-cyan), inset 0 0 6px var(--neon-cyan); 
         }
 
         .lotto-ball { width: 40px; height: 42px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #ffffff 0%, #ffd700 50%, #b78103 100%); color: #000; font-weight: 900; font-size: 0.95rem; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #fff; font-family: var(--font-mono); flex-shrink: 0; box-shadow: 0 0 12px rgba(255,215,0,0.35); }
@@ -552,8 +499,7 @@
             .lobby-btn.full-width { grid-column: span 1; }
             .alphabet-key { min-width: 22px; height: 30px; font-size: 0.72rem; max-width: 30px; }
         }
-    
-</style>
+    </style>
 </head>
 <body>
 
@@ -564,7 +510,6 @@
 </div>
 
 <header>
-    <!-- 👑 BAJNOKI SZERENCSEBAJNOK LOGÓ -->
     <div class="brand-top-left" onclick="showLobbyView()" title="Vissza a Főoldalra">
         <svg viewBox="0 0 100 100">
             <circle cx="50" cy="50" r="44" fill="none" stroke="url(#logoGrad)" stroke-width="7" />
@@ -607,15 +552,21 @@
     </div>
 </div>
 
+<!-- 📊 ÉLŐ FELADVÁNY SZÁMLÁLÓ & GOOGLE SHEETS SÁV -->
+<div id="puzzle-count-live-badge">
+    <span id="puzzle-count-txt">📚 Feladványtár betöltése...</span>
+    <span id="puzzle-seen-txt" style="color:var(--neon-gold);">Kijátszva: 0/0 (0%)</span>
+</div>
+
 <div id="tv-container">
     <div id="screen">
         
-        <!-- 🌟 LOBBY VIEW (TISZTA MENÜRENDSZER) -->
+        <!-- 🌟 LOBBY VIEW -->
         <div id="lobby-view">
             <div class="lobby-card-box">
                 <div class="lobby-section-title">🎮 EGYÉNI KASZINÓ & JÁTÉKOK</div>
                 <div class="lobby-grid-buttons">
-                    <button class="lobby-btn full-width" onclick="startSoloGame()">☸️ Szerencsekerék (1P vs Robot)</button>
+                    <button class="lobby-btn full-width" onclick="startSoloGame()">☸️ Szerencsekerék (1P vs Robot Ödön)</button>
                     <button class="lobby-btn mines-highlight full-width" onclick="openCyberMinesModal()">⚡ LÉZER MÁTRIX</button>
                     <button class="lobby-btn" onclick="openStandaloneBlackjack()">♠️ BLACKJACK 21</button>
                     <button class="lobby-btn" onclick="openStandaloneLuxor()">🍀 LUXOR BINGO</button>
@@ -636,7 +587,7 @@
         <!-- ⏳ ONLINE WAITING OVERLAY -->
         <div id="waiting-overlay" style="display:none; text-align:center;">
             <h2 style="font-family:var(--font-mono); color:var(--neon-cyan); font-size:1.4rem; margin-bottom:4px;">SZOBA LÉTREHOZVA</h2>
-            <p style="font-size:0.8rem; color:var(--text-muted);">Adja meg ezt a 4-jegyű szobakódot az ellenfélnek vagy a nézőknek:</p>
+            <p style="font-size:0.8rem; color:var(--text-muted);">Adja meg ezt a 4-jegyű szobakódot az ellenfélnek:</p>
             <div style="font-size:2.8rem; font-weight:900; color:var(--neon-gold); background:#070913; padding:10px 24px; border-radius:12px; border:1px solid var(--neon-gold); margin:12px auto; font-family:var(--font-mono); letter-spacing:6px; max-width:240px; box-shadow:0 0 20px rgba(255,215,0,0.25);" id="waiting-code-display">----</div>
             <p style="color:var(--text-main); font-weight:bold; font-size:0.85rem;">⏳ Várakozás a párbaj ellenfél csatlakozására...</p>
             <button class="action-btn" onclick="exitRoomAndReturnLobby()" style="background:rgba(255,255,255,0.1); color:#fff; margin-top:10px;">Mégse / Vissza</button>
@@ -646,7 +597,7 @@
         <div id="game-area">
             <section id="puzzle-section">
                 <div id="puzzle-category">FELADVÁNY BETÖLTÉSE...</div>
-                <div id="round-info-container">
+                <div id="round-info-container" style="display:flex; justify-content:space-between; width:100%; max-width:440px; font-size:0.8rem; font-family:var(--font-mono); color:var(--neon-cyan);">
                     <span id="round-display">Forduló: 1/3</span>
                     <span id="vowel-cost-display">Magánhangzó: 250 Ft</span>
                     <span id="spectator-count">👀 Nézők: 0</span>
@@ -656,8 +607,8 @@
                 </div>
 
                 <!-- 💡 KÖRÖNKÉNTI SEGÍTSÉG KIÍRÁS -->
-                <div id="active-hint-container">
-                    💡 UTALÁS: <strong id="active-hint-text"></strong>
+                <div id="active-hint-container" style="display:none; background:rgba(0,229,255,0.12); border:1px solid var(--neon-cyan); border-radius:8px; padding:6px 12px; font-size:0.8rem; color:#fff; text-align:center; max-width:440px; width:100%;">
+                    💡 UTALÁS: <strong id="active-hint-text" style="color:var(--neon-cyan);"></strong>
                 </div>
                 
                 <div id="puzzle-board-wrapper">
@@ -676,14 +627,13 @@
                         <div id="p1-total" class="hud-total">Kassza: 0 Ft</div>
                     </div>
                     <div id="hud-p2" class="player-hud" style="display:none;">
-                        <div class="hud-avatar" id="p2-avatar">2</div>
+                        <div class="hud-avatar" id="p2-avatar">🤖</div>
                         <div class="hud-name"><span id="p2-name">Robot (Ödön)</span></div>
                         <div id="p2-score" class="hud-score">0 Ft</div>
                         <div id="p2-total" class="hud-total">Kassza: 0 Ft</div>
                     </div>
                 </div>
 
-                <!-- ⚙️ ULTRA HD WHEEL & REALTIME POINTER -->
                 <div id="wheel-wrapper">
                     <div id="wheel-pointer"></div>
                     <svg id="wheel" viewBox="0 0 200 200"></svg>
@@ -715,7 +665,7 @@
     </div>
 </div>
 
-<!-- Custom Dialog Modal -->
+<!-- MODALOK -->
 <div id="custom-modal" class="modal-overlay">
     <div class="modal-content">
         <h3 id="modal-title">Cím</h3>
@@ -725,29 +675,24 @@
     </div>
 </div>
 
-<!-- 🏆 BEÉGETETT KÁRTYÁS TOPLISTA MODAL (GÖRGETÉSMENTES) -->
 <div id="leaderboard-modal" class="modal-overlay">
     <div class="modal-content leaderboard-modal-box">
         <h3 style="font-size:1.4rem; color:var(--neon-gold); font-family:var(--font-mono); letter-spacing:2px;">🏆 HETI DICSŐSÉGCSARNOK</h3>
         <p style="font-size:0.8rem; color:var(--text-muted); margin-top:-4px;">(Hétfő 0:00 - Vasárnap 23:59 közötti hivatalos ranglista)</p>
-        
         <div id="leaderboard-list" class="leaderboard-podium-container"></div>
-        
         <button class="action-btn" onclick="document.getElementById('leaderboard-modal').classList.remove('visible')" style="width:100%; margin-top:8px;">Bezárás</button>
     </div>
 </div>
 
-<!-- ⚡ LÉZER MÁTRIX MODAL (KIBŐVÍTETT, PRÉMIUM TÁBLA) -->
+<!-- KASZINÓ MODALOK (LÉZER MÁTRIX, BLACKJACK, LUXOR, LOTTÓ) -->
 <div id="mines-modal" class="modal-overlay">
     <div class="modal-content" style="max-width:540px;">
         <h3>⚡ LÉZER MÁTRIX</h3>
-        
         <div style="display:flex; justify-content:space-between; align-items:center; background:#070913; padding:8px 12px; border-radius:10px; font-family:var(--font-mono); font-size:0.85rem; flex-wrap:wrap; gap:4px; border:1px solid var(--border-color);">
             <div>Egyenleg: <strong id="mines-user-balance" style="color:var(--neon-gold);">0 Ft</strong></div>
             <div>Tét: <strong id="mines-current-bet-display" style="color:var(--neon-cyan);">100 Ft</strong></div>
             <div>SZORZÓ: <strong id="mines-multiplier-display" style="color:var(--neon-green);">1.00x</strong></div>
         </div>
-
         <div id="mines-controls" style="display:flex; flex-direction:column; gap:6px;">
             <div style="display:flex; justify-content:center; gap:6px; font-size:0.8rem; font-family:var(--font-mono); align-items:center;">
                 <span>LÉZEREK:</span>
@@ -764,87 +709,27 @@
             </div>
             <button class="action-btn" id="mines-start-btn" onclick="startMinesGame()" style="width:100%; font-size:0.95rem; padding:12px;">🚀 JÁTÉK INDÍTÁSA</button>
         </div>
-
         <div id="mines-cashout-container" style="display:none;">
             <button class="action-btn" id="mines-cashout-btn" onclick="cashoutMinesGame()" style="width:100%; background:linear-gradient(135deg, var(--neon-green), #059669); color:#fff; font-size:1.05rem; padding:12px;">💰 KIFIZETÉS: 0 Ft</button>
         </div>
-
         <div class="mines-grid-container" id="mines-grid-board"></div>
-
         <div>
             <button class="action-btn" onclick="closeMinesModal()" style="background:rgba(255,255,255,0.08); color:#fff; border-color:var(--border-color);">Kilépés</button>
         </div>
     </div>
 </div>
 
-<!-- 🎰 SZERENCSELOTTÓ MODAL -->
-<div id="lotto-modal" class="modal-overlay">
-    <div class="modal-content" style="max-width:580px;">
-        <h3 id="lotto-header-title">🎰 SZERENCSELOTTÓ</h3>
-        <p id="lotto-date-display" style="font-size:0.8rem; color:var(--text-muted); font-family:var(--font-mono);">Sorsolási nap: ----</p>
-
-        <div id="lotto-status-badge" style="background:#070913; border:1px solid var(--border-glow); border-radius:8px; padding:6px; font-size:0.75rem;">
-            🟢 <strong>SORSOLÁS ELŐTT:</strong> Az első 2 szelvény INGYENES! A 3. szelvénytől 5 000 Ft/szelvény.
-        </div>
-
-        <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.04); padding:6px 10px; border-radius:8px; font-size:0.75rem; font-family:var(--font-mono);">
-            <span>Mai szelvények: <strong id="lotto-ticket-count" style="color:var(--neon-gold);">0 / 10</strong> (<span id="lotto-free-count" style="color:var(--neon-green);">2 Ingyenes</span>)</span>
-            <span>Egyenleg: <strong id="lotto-user-balance" style="color:var(--neon-gold);">0 Ft</strong></span>
-        </div>
-
-        <div style="background:#070913; padding:8px; border-radius:8px; border:1px solid var(--border-color);">
-            <div style="font-size:0.75rem; color:var(--text-muted); font-weight:bold;">A MAI NAP NYERŐSZÁMAI (19:00-KOR LELEPLEZVE):</div>
-            <div id="lotto-winning-balls-container" style="display:flex; gap:8px; justify-content:center; align-items:center; min-height:44px; margin-top:4px;">
-                <div class="lotto-ball">🔒</div><div class="lotto-ball">🔒</div><div class="lotto-ball">🔒</div><div class="lotto-ball">🔒</div><div class="lotto-ball">🔒</div>
-            </div>
-        </div>
-
-        <div>
-            <table class="prize-tree-table">
-                <thead><tr><th>TALÁLAT</th><th>NYEREMÉNY</th></tr></thead>
-                <tbody>
-                    <tr><td>5 találatos</td><td style="color:var(--neon-gold); font-weight:bold;">250 000 Ft</td></tr>
-                    <tr><td>4 találatos</td><td style="color:var(--neon-gold); font-weight:bold;">25 000 Ft</td></tr>
-                    <tr><td>3 találatos</td><td style="color:var(--neon-gold); font-weight:bold;">2 500 Ft</td></tr>
-                    <tr><td>2 találatos</td><td style="color:var(--neon-gold); font-weight:bold;">500 Ft</td></tr>
-                    <tr><td>1 találatos</td><td style="color:var(--neon-gold); font-weight:bold;">100 Ft</td></tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div id="lotto-picker-area" style="background:#070913; padding:8px; border-radius:8px; border:1px solid var(--border-color);">
-            <div style="font-size:0.8rem; color:#fff; font-weight:bold;">VÁLASSZ KI 5 SZÁMOT A SZELVÉNYHEZ (1 - 90):</div>
-            <div class="lotto-num-grid" id="lotto-number-grid"></div>
-            <div style="display:flex; gap:6px; justify-content:center; margin-top:6px;">
-                <button class="action-btn" onclick="lottoQuickPick()" style="background:rgba(255,255,255,0.08); color:#fff; border-color:var(--border-color); flex:1;">🎲 QUICK PICK</button>
-                <button class="action-btn" id="lotto-submit-btn" onclick="submitLottoTicket()" style="flex:2;">🎟️ SZELVÉNY BEKÜLDÉSE</button>
-            </div>
-        </div>
-
-        <div style="background:#070913; padding:8px; border-radius:8px; border:1px solid var(--border-color); text-align:left; max-height:120px; overflow-y:auto; font-size:0.75rem;">
-            <div style="color:var(--neon-gold); font-weight:bold; margin-bottom:4px; font-family:var(--font-mono);">🎫 MAI SZELVÉNYEIM:</div>
-            <div id="lotto-my-tickets-list">Még nem adtál fel szelvényt a mai napra.</div>
-        </div>
-
-        <button class="action-btn" onclick="closeSzerencseLottoModal()" style="background:rgba(255,255,255,0.08); color:#fff; border-color:var(--border-color);">Bezárás</button>
-    </div>
-</div>
-
-<!-- ♠️ BLACKJACK MODAL -->
 <div id="blackjack-modal" class="modal-overlay">
     <div class="modal-content" style="max-width:540px;">
         <h3 id="bj-modal-title">♠️ 21-ES BLACKJACK ♥️</h3>
-        
         <div style="display:flex; justify-content:space-between; align-items:center; background:#070913; padding:6px 10px; border-radius:8px; font-family:var(--font-mono); font-size:0.8rem; flex-wrap:wrap; gap:4px;">
             <div>Egyenleg: <strong id="bj-user-balance" style="color:var(--neon-gold);">0 Ft</strong></div>
             <div>Tét: <strong id="bj-current-bet" style="color:var(--neon-cyan);">50 Ft</strong></div>
             <div id="bj-streak-badge" style="color:var(--neon-gold); font-weight:bold;">🔥 Széria: 0 (1.0x)</div>
         </div>
-
         <div id="bj-strategy-hint" style="background:rgba(0,229,255,0.1); border:1px solid var(--neon-cyan); border-radius:6px; padding:5px; font-size:0.75rem; font-family:var(--font-mono); color:var(--neon-cyan);">
             💡 Cyber Súgó: Állítsd be a tétet az osztáshoz!
         </div>
-
         <div id="bj-bet-controls" style="display:flex; flex-direction:column; align-items:center; gap:6px;">
             <div class="casino-chips-container">
                 <div class="casino-chip" onclick="addChipBet(50)">+50</div>
@@ -858,46 +743,38 @@
             </div>
             <button class="action-btn" id="bj-deal-btn" onclick="startBJHand()" style="width:100%; max-width:340px;">OSZTÁS INDÍTÁSA</button>
         </div>
-
         <div style="background:#070913; padding:8px; border-radius:8px; border:1px solid var(--border-color); min-height:85px;">
             <div style="font-size:0.8rem; color:var(--text-muted); font-weight:bold; font-family:var(--font-mono);">OSZTÓ LAPJAI: <span id="bj-dealer-score" style="color:white;">?</span></div>
             <div id="bj-dealer-cards" style="display:flex; justify-content:center; gap:6px; margin-top:6px; min-height:55px; align-items:center; flex-wrap:wrap;"></div>
         </div>
-
         <div style="background:#070913; padding:8px; border-radius:8px; border:1px solid var(--border-color); min-height:85px;">
             <div style="font-size:0.8rem; color:var(--text-muted); font-weight:bold; font-family:var(--font-mono);"><span id="bj-p1-label">ÖN LAPJAI</span>: <span id="bj-player-score" style="color:var(--neon-gold);">0</span></div>
             <div id="bj-player-cards" style="display:flex; justify-content:center; gap:6px; margin-top:6px; min-height:55px; align-items:center; flex-wrap:wrap;"></div>
         </div>
-
         <div class="modal-buttons" id="bj-action-buttons" style="display:none; gap:4px;">
             <button class="action-btn" id="bj-hit-btn" onclick="bjHit()" style="flex:1;">🃏 LAPOT</button>
             <button class="action-btn" id="bj-stand-btn" onclick="bjStand()" style="flex:1;">✋ MEGÁLLOK</button>
             <button class="action-btn" id="bj-double-btn" onclick="bjDoubleDown()" style="flex:1; background:linear-gradient(135deg, var(--neon-cyan), #0284c7); color:#000;">⚡ DUPLÁZÁS</button>
             <button class="action-btn" id="bj-surrender-btn" onclick="bjSurrender()" style="flex:1; background:rgba(255,255,255,0.1); color:#fff; border-color:var(--border-color);">🏳️ FELADÁS</button>
         </div>
-        
         <div>
             <button class="action-btn" onclick="closeBlackjackModal()" style="background:rgba(255,255,255,0.08); color:#fff; border-color:var(--border-color);">Kilépés</button>
         </div>
     </div>
 </div>
 
-<!-- 🍀 LUXOR BINGO MODAL -->
 <div id="luxor-modal" class="modal-overlay">
     <div class="modal-content" style="max-width:660px; padding:18px;">
         <h3 style="font-size:1.4rem; letter-spacing:2px;">🍀 LUXOR BINGO</h3>
-        
         <div style="display:flex; justify-content:space-between; align-items:center; background:#070913; padding:6px 10px; border-radius:8px; font-family:var(--font-mono); font-size:0.78rem; flex-wrap:wrap; gap:4px;">
             <div>Egyenleg: <strong id="luxor-user-balance" style="color:var(--neon-gold);">0 Ft</strong></div>
             <div>Tét: <strong id="luxor-current-bet-display" style="color:var(--neon-green);">50 Ft</strong></div>
             <div>HATÁRSZÁM: <strong id="luxor-hatarszam-display" style="color:var(--neon-cyan);">40</strong> | SORSOLVA: <strong id="luxor-drawn-count" style="color:var(--neon-gold);">0</strong></div>
         </div>
-
         <div style="display:flex; gap:4px; justify-content:center; flex-wrap:wrap;">
             <button class="top-btn" id="luxor-speed-btn" onclick="toggleLuxorSpeed()">⚡ SEBESSÉG: 5 mp</button>
             <button class="top-btn" id="luxor-lucky-bet-btn" onclick="enableLuckyCharmPicker()">🍀 SORS SZÁM (AMULETT)</button>
         </div>
-
         <div id="luxor-bet-controls" style="display:flex; flex-direction:column; align-items:center; gap:4px;">
             <div class="casino-chips-container">
                 <div class="casino-chip" onclick="addLuxorChipBet(50)">+50</div>
@@ -909,263 +786,83 @@
             </div>
             <button class="action-btn" id="luxor-start-btn" onclick="startLuxorGame()" style="width:100%; max-width:320px;">🍀 SORSOLÁS INDÍTÁSA</button>
         </div>
-
         <div style="background:#070913; padding:8px; border-radius:8px; border:1px solid var(--border-color); text-align:center;">
             <div style="font-size:0.75rem; color:var(--text-muted); font-weight:bold; font-family:var(--font-mono);">UTOLJÁRA KISORSOLT GOLYÓ:</div>
             <div id="luxor-current-ball-display" style="min-height:48px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
                 <span style="color:var(--text-muted); font-size:0.8rem; font-family:var(--font-mono);">Várakozás a sorsolásra...</span>
             </div>
         </div>
-
         <div style="background:#070913; padding:6px; border-radius:6px; border:1px solid var(--border-color); font-size:0.75rem; font-family:var(--font-mono);">
             ELŐZŐ GOLYÓK: <span id="luxor-ball-history-text" style="color:var(--neon-cyan); font-weight:bold;">-</span>
         </div>
-
-        <!-- 📊 ÉLŐ SOROK, ÁTLÓK ÉS REFLEX KIJELZŐ -->
-        <div style="display:flex; justify-content:space-around; align-items:center; background:linear-gradient(135deg, rgba(13,18,36,0.9), rgba(7,9,19,0.95)); padding:8px 10px; border-radius:10px; font-family:var(--font-mono); font-size:0.8rem; border:1px solid var(--border-glow); margin:6px auto; max-width:440px; flex-wrap:wrap; gap:6px;">
-            <div>📊 Sorok: <strong id="luxor-row-display" style="color:var(--neon-green);">0 Ft</strong></div>
-            <div>🔥 Átlók: <strong id="luxor-diag-display" style="color:var(--neon-gold);">0 Ft</strong></div>
-            <div>⚡ Reflex: <strong id="luxor-reflex-display" style="color:var(--neon-cyan);">0 Ft</strong></div>
-        </div>
-
         <div class="luxor-ticket-container" id="luxor-ticket-box">
             <div class="luxor-header-row">
                 <span>L</span><span>U</span><span>X</span><span>O</span><span>R</span>
             </div>
             <div class="luxor-grid" id="luxor-grid-board"></div>
         </div>
-
         <div>
             <button class="action-btn" onclick="closeLuxorModal()" style="background:rgba(255,255,255,0.08); color:#fff; border-color:var(--border-color);">Kilépés</button>
         </div>
     </div>
 </div>
 
-<!-- FIREBASE COMPAT SDKs -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+<div id="lotto-modal" class="modal-overlay">
+    <div class="modal-content" style="max-width:580px;">
+        <h3 id="lotto-header-title">🎰 SZERENCSELOTTÓ</h3>
+        <p id="lotto-date-display" style="font-size:0.8rem; color:var(--text-muted); font-family:var(--font-mono);">Sorsolási nap: ----</p>
+        <div id="lotto-status-badge" style="background:#070913; border:1px solid var(--border-glow); border-radius:8px; padding:6px; font-size:0.75rem;">
+            🟢 <strong>SORSOLÁS ELŐTT:</strong> Az első 2 szelvény INGYENES! A 3. szelvénytől 5 000 Ft/szelvény.
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.04); padding:6px 10px; border-radius:8px; font-size:0.75rem; font-family:var(--font-mono);">
+            <span>Mai szelvények: <strong id="lotto-ticket-count" style="color:var(--neon-gold);">0 / 10</strong> (<span id="lotto-free-count" style="color:var(--neon-green);">2 Ingyenes</span>)</span>
+            <span>Egyenleg: <strong id="lotto-user-balance" style="color:var(--neon-gold);">0 Ft</strong></span>
+        </div>
+        <div style="background:#070913; padding:8px; border-radius:8px; border:1px solid var(--border-color);">
+            <div style="font-size:0.75rem; color:var(--text-muted); font-weight:bold;">A MAI NAP NYERŐSZÁMAI (19:00-KOR LELEPLEZVE):</div>
+            <div id="lotto-winning-balls-container" style="display:flex; gap:8px; justify-content:center; align-items:center; min-height:44px; margin-top:4px;">
+                <div class="lotto-ball">🔒</div><div class="lotto-ball">🔒</div><div class="lotto-ball">🔒</div><div class="lotto-ball">🔒</div><div class="lotto-ball">🔒</div>
+            </div>
+        </div>
+        <div id="lotto-picker-area" style="background:#070913; padding:8px; border-radius:8px; border:1px solid var(--border-color);">
+            <div style="font-size:0.8rem; color:#fff; font-weight:bold;">VÁLASSZ KI 5 SZÁMOT A SZELVÉNYHEZ (1 - 90):</div>
+            <div class="lotto-num-grid" id="lotto-number-grid"></div>
+            <div style="display:flex; gap:6px; justify-content:center; margin-top:6px;">
+                <button class="action-btn" onclick="lottoQuickPick()" style="background:rgba(255,255,255,0.08); color:#fff; border-color:var(--border-color); flex:1;">🎲 QUICK PICK</button>
+                <button class="action-btn" id="lotto-submit-btn" onclick="submitLottoTicket()" style="flex:2;">🎟️ SZELVÉNY BEKÜLDÉSE</button>
+            </div>
+        </div>
+        <div style="background:#070913; padding:8px; border-radius:8px; border:1px solid var(--border-color); text-align:left; max-height:120px; overflow-y:auto; font-size:0.75rem;">
+            <div style="color:var(--neon-gold); font-weight:bold; margin-bottom:4px; font-family:var(--font-mono);">🎫 MAI SZELVÉNYEIM:</div>
+            <div id="lotto-my-tickets-list">Még nem adtál fel szelvényt a mai napra.</div>
+        </div>
+        <button class="action-btn" onclick="closeSzerencseLottoModal()" style="background:rgba(255,255,255,0.08); color:#fff; border-color:var(--border-color);">Bezárás</button>
+    </div>
+</div>
 
 <script>
 // =====================================================================
-// 🌐 KONSTANSOK ÉS GLOBÁLIS VÁLTOZÓK
+// 🔊 GLOBÁLIS WEB AUDIO ENGINE (LEGELSŐKÉNT DEFINIÁLVA)
 // =====================================================================
-const FULL_ALPHABET = "AÁBCDEÉFGHIÍJKLMNOÓÖŐPQRSTUÚÜŰVWXYZ";
-const VOWELS = "AÁEÉIÍOÓÖŐUÚÜŰ";
-const CONSONANTS = "BCDFGHJKLMNPQRSTVWXYZ";
-const ROUND_WIN_BONUSES = { 1: 1000, 2: 2500, 3: 5000 };
-
-const FIREBASE_DB_URL = "https://szerencsekerek20260807-default-rtdb.europe-west1.firebasedatabase.app";
-const CLOUDFLARE_WORKER_URL = "https://szerencse.tkpflix.workers.dev/puzzles";
-
-const myPlayerId = 'p_' + Math.random().toString(36).substr(2, 9);
-
-let audioEnabled = true;
-let myPlayerName = '';
-let isWeeklyChampion = false;
-let roomCode = null;
-let currentGameType = 'wheel';
-let isSpectator = false;
-let myPlayerIndex = 0;
-let roomListenerRef = null;
-
-let boosterCharging = false;
-let boosterPower = 0;
-let boosterDirection = 1;
-let boosterInterval = null;
-let roundTransitionTimer = null;
-
-let lastHandledSpinTime = 0;
-let lastHandledLetterCallTime = 0;
-
-const animatingLetters = new Set();
-let allPuzzles = [];
-let usedPuzzleIndices = new Set();
-
-let pointerAngle = 0;
-
-let gameState = {
-    mode: 'solo',
-    phase: 'IDLE',
-    round: 1,
-    activePlayerIndex: 0,
-    currentSpinValue: 500,
-    currentRotation: 0,
-    spinInProgress: false,
-    guessedLetters: [],
-    hintCount: 0,
-    hintUnlocked: false,
-    hintText: '',
-    hostMessage: 'Üdvözöljük a Stúdióban!',
-    currentPuzzle: null,
-    players: [
-        { name: 'Játékos 1', score: 0, totalScore: 0 },
-        { name: 'Robot (Ödön)', score: 0, totalScore: 0 }
-    ]
-};
-
-const firebaseConfig = {
-  apiKey: "AIzaSyDkdh3W8QHHtDcM3O7_m_unhDgxoQ5oSfQ",
-  authDomain: "szerencsekerek20260807.firebaseapp.com",
-  projectId: "szerencsekerek20260807",
-  storageBucket: "szerencsekerek20260807.firebasestorage.app",
-  messagingSenderId: "362866366988",
-  appId: "1:362866366988:web:566e3c0f9dc376d341ac29",
-  databaseURL: FIREBASE_DB_URL
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
-// KERÉK SZELETEK BEÁLLÍTÁSA KÖRÖNKÉNT (SEGÍTSÉG ÉS RABLÁS MEZŐKKEL)
-function getWheelForRound(roundNum, hintClaimedThisRound = false) {
-    let hintSeg = hintClaimedThisRound 
-        ? { label: "10000 Ft", value: 10000, color: "#a855f7" }
-        : { label: "SEGÍTSÉG", value: "hint", color: "#06b6d4" };
-
-    if (roundNum === 1) {
-        return [
-            { label: "100 Ft", value: 100, color: "#10b981" },
-            { label: "250 Ft", value: 250, color: "#00e5ff" },
-            { label: "500 Ft", value: 500, color: "#8b5cf6" },
-            { label: "750 Ft", value: 750, color: "#ec4899" },
-            { label: "1000 Ft", value: 1000, color: "#ffd700" },
-            { label: "CSŐD", value: "bankrupt", color: "#f43f5e" },
-            { label: "300 Ft", value: 300, color: "#3b82f6" },
-            { label: "KIMARADSZ", value: "lose_turn", color: "#475569" },
-            { label: "1500 Ft", value: 1500, color: "#f59e0b" },
-            hintSeg
-        ];
-    } else if (roundNum === 2) {
-        return [
-            { label: "250 Ft", value: 250, color: "#10b981" },
-            { label: "500 Ft", value: 500, color: "#00e5ff" },
-            { label: "1000 Ft", value: 1000, color: "#8b5cf6" },
-            { label: "1500 Ft", value: 1500, color: "#ec4899" },
-            { label: "2000 Ft", value: 2000, color: "#ffd700" },
-            { label: "CSŐD", value: "bankrupt", color: "#f43f5e" },
-            { label: "RABLÁS", value: "steal", color: "#dc2626" }, // 🏴‍☠️ RABLÁS MEZŐ!
-            { label: "KIMARADSZ", value: "lose_turn", color: "#475569" },
-            { label: "2500 Ft", value: 2500, color: "#f59e0b" },
-            hintSeg
-        ];
-    } else {
-        return [
-            { label: "500 Ft", value: 500, color: "#10b981" },
-            { label: "1000 Ft", value: 1000, color: "#00e5ff" },
-            { label: "2000 Ft", value: 2000, color: "#8b5cf6" },
-            { label: "3000 Ft", value: 3000, color: "#ec4899" },
-            { label: "5000 Ft", value: 5000, color: "#ffd700" },
-            { label: "CSŐD", value: "bankrupt", color: "#f43f5e" },
-            { label: "RABLÁS", value: "steal", color: "#dc2626" }, // 🏴‍☠️ RABLÁS MEZŐ!
-            { label: "KIMARADSZ", value: "lose_turn", color: "#475569" },
-            { label: "10000 Ft", value: 10000, color: "#a855f7" },
-            hintSeg
-        ];
-    }
-}
-
-let wheelSegments = getWheelForRound(1, false);
-
-function toggleMute() {
-    audioEnabled = !audioEnabled;
-    const btn = document.getElementById('mute-btn');
-    if (btn) {
-        btn.textContent = audioEnabled ? "🔊 Hang" : "🔇 Néma";
-        btn.classList.toggle('mute', !audioEnabled);
-    }
-}
-
-function showLobbyView() {
-    if (roomListenerRef) roomListenerRef.off();
-    document.getElementById('lobby-view').style.display = 'flex';
-    document.getElementById('game-area').style.display = 'none';
-    document.getElementById('waiting-overlay').style.display = 'none';
-    document.getElementById('room-info-badge').style.display = 'none';
-}
-
-function showGameView() {
-    document.getElementById('lobby-view').style.display = 'none';
-    document.getElementById('waiting-overlay').style.display = 'none';
-    document.getElementById('game-area').style.display = 'flex';
-}
-
-function getTodayDateString() { 
-    const d = new Date(); 
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; 
-}
-
-function getWeeklyId(date = new Date()) {
-    const d = new Date(date);
-    d.setHours(0, 0, 0, 0);
-    const day = d.getDay() || 7;
-    d.setDate(d.getDate() - day + 1);
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const dayM = String(d.getDate()).padStart(2, '0');
-    return `${y}-${m}-${dayM}`;
-}
-
-function getPreviousWeeklyId() {
-    const d = new Date(); d.setDate(d.getDate() - 7); return getWeeklyId(d);
-}
-
-function getVowelCost() {
-    return gameState.round === 1 ? 250 : (gameState.round === 2 ? 500 : 750);
-}
-
-function getHintCost() {
-    const costs = [500, 1500, 3000, 5000];
-    const count = gameState.hintCount || 0;
-    return costs[Math.min(count, costs.length - 1)];
-}
-
-async function loadGoogleSheetsPuzzles() {
-    try {
-        const res = await fetch(CLOUDFLARE_WORKER_URL);
-        if (res.ok) {
-            const data = await res.json();
-            if (Array.isArray(data) && data.length > 0) { allPuzzles = data; return; }
-        }
-    } catch (e) { console.warn("Worker elérés hiba", e); }
-    allPuzzles = [
-        { category: "TV MŰSOR", puzzle: "SZOMSZÉDOK", hint: "Ikonikus teleregény a Gazdagréti lakótelepről." },
-        { category: "ÉDESSÉG", puzzle: "SPORT SZELET", hint: "Rumos-csokis retro finomság zöld csomagolásban." },
-        { category: "RAJZFILM", puzzle: "TÉVÉ MACI", hint: "Minden este fogat mos az esti mese előtt." },
-        { category: "MAGYAR VÁROS", puzzle: "DEBRECEN", hint: "A Cívisváros és a Nagytemplom otthona." },
-        { category: "ÉTEL", puzzle: "GULYÁSLEVES", hint: "Klasszikus magyar népi étel bográcsban készítve." },
-        { category: "ZENE", puzzle: "GYÖNGYHAJÚ LÁNY", hint: "Az Omega együttes leghíresebb slágere." }
-    ];
-}
-
-async function getValidUnusedPuzzle() {
-    if (!allPuzzles || allPuzzles.length === 0) { await loadGoogleSheetsPuzzles(); }
-    if (usedPuzzleIndices.size >= allPuzzles.length) { usedPuzzleIndices.clear(); }
-    let idx;
-    do { idx = Math.floor(Math.random() * allPuzzles.length); } while (usedPuzzleIndices.has(idx) && usedPuzzleIndices.size < allPuzzles.length);
-    usedPuzzleIndices.add(idx);
-    return allPuzzles[idx];
-}
-
-// 🔊 MODERN 2026 WEB AUDIO SYNTHESIZER ENGINE
-const AudioEngine = {
+window.AudioEngine = {
     ctx: null,
-    init() { try { if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); if (this.ctx.state === 'suspended') this.ctx.resume(); } catch(e){} },
+    init() { 
+        try { 
+            if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); 
+            if (this.ctx.state === 'suspended') this.ctx.resume(); 
+        } catch(e){} 
+    },
     
     playTick(pitchFactor = 1.0) {
         if (!audioEnabled) return; this.init(); if (!this.ctx) return;
         try {
             const now = this.ctx.currentTime;
-            const osc = this.ctx.createOscillator();
-            const gain = this.ctx.createGain();
+            const osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
             osc.type = 'triangle';
-            
-            const baseFreq = 950 * pitchFactor;
-            osc.frequency.setValueAtTime(baseFreq, now);
+            osc.frequency.setValueAtTime(950 * pitchFactor, now);
             osc.frequency.exponentialRampToValueAtTime(180, now + 0.025);
-            
             gain.gain.setValueAtTime(0.08, now);
             gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.025);
-            
             osc.connect(gain); gain.connect(this.ctx.destination);
             osc.start(now); osc.stop(now + 0.025);
         } catch(e){}
@@ -1261,33 +958,391 @@ const AudioEngine = {
                 osc.connect(gain); gain.connect(this.ctx.destination); osc.start(now + i * 0.06); osc.stop(now + i * 0.06 + 0.38);
             });
         } catch(e){}
-    },
-
-    playLuxorExplosionSound(combo = 1) {
-        if (!audioEnabled) return; this.init(); if (!this.ctx) return;
-        try {
-            const now = this.ctx.currentTime;
-            const level = Math.min(combo, 10);
-            const volume = Math.min(0.08 + level * 0.03, 0.4);
-            const duration = 0.16 + level * 0.04;
-
-            const osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(200 + level * 30, now);
-            osc.frequency.exponentialRampToValueAtTime(35, now + duration);
-            gain.gain.setValueAtTime(volume, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
-            
-            osc.connect(gain); gain.connect(this.ctx.destination);
-            osc.start(now); osc.stop(now + duration);
-        } catch(e){}
     }
 };
 
-async function fbPut(path, data) { try { await db.ref(path).set(data); return data; } catch(e) { return null; } }
-async function fbPatch(path, data) { try { await db.ref(path).update(data); return data; } catch(e) { return null; } }
-async function fbGet(path) { try { const snap = await db.ref(path).once('value'); return snap.exists() ? snap.val() : null; } catch(e) { return null; } }
-async function fbDelete(path) { try { await db.ref(path).remove(); return true; } catch(e) { return null; } }
+// =====================================================================
+// 🌐 KONSTANSOK & FELADVÁNYOK
+// =====================================================================
+const FULL_ALPHABET = "AÁBCDEÉFGHIÍJKLMNOÓÖŐPQRSTUÚÜŰVWXYZ";
+const VOWELS = "AÁEÉIÍOÓÖŐUÚÜŰ";
+const CONSONANTS = "BCDFGHJKLMNPQRSTVWXYZ";
+const ROUND_WIN_BONUSES = { 1: 1000, 2: 2500, 3: 5000 };
+
+const FIREBASE_DB_URL = "https://szerencsekerek20260807-default-rtdb.europe-west1.firebasedatabase.app";
+const GOOGLE_SHEET_ID = "1q7w1v98893-uu4_UP95Dy0RZJHuGMJDXAwD8OYfJsHY";
+
+const myPlayerId = 'p_' + Math.random().toString(36).substr(2, 9);
+
+let audioEnabled = true;
+let myPlayerName = '';
+let isWeeklyChampion = false;
+let roomCode = null;
+let currentGameType = 'wheel';
+let isSpectator = false;
+let myPlayerIndex = 0;
+let roomListenerRef = null;
+
+let boosterCharging = false;
+let boosterPower = 0;
+let boosterDirection = 1;
+let boosterInterval = null;
+let roundTransitionTimer = null;
+
+let lastHandledSpinTime = 0;
+let lastHandledLetterCallTime = 0;
+
+const animatingLetters = new Set();
+let allPuzzles = [];
+let userSeenPuzzleHashes = new Set();
+
+let pointerAngle = 0;
+
+let gameState = {
+    mode: 'solo',
+    phase: 'IDLE',
+    round: 1,
+    activePlayerIndex: 0,
+    currentSpinValue: 500,
+    currentRotation: 0,
+    spinInProgress: false,
+    guessedLetters: [],
+    hintCount: 0,
+    hintUnlocked: false,
+    hintText: '',
+    hostMessage: 'Üdvözöljük a Stúdióban!',
+    currentPuzzle: null,
+    players: [
+        { name: 'Játékos 1', score: 0, totalScore: 0 },
+        { name: 'Robot (Ödön)', score: 0, totalScore: 0 }
+    ]
+};
+
+// 🏛️ MASSZÍV, BEÉPÍTETT MAGYAR FELADVÁNYTÁR (MODERN & NOSZTALGIKUS)
+const BUILTIN_PUZZLES = [
+    { category: "STREAMING SOROZAT", puzzle: "STRANGER THINGS", hint: "Kultikus 80-as évekbeli sci-fi sorozat a Tótágas világával." },
+    { category: "FILMCÍM", puzzle: "OPPENHEIMER", hint: "Christopher Nolan Oscar-díjas filmje az atombomba atyjáról." },
+    { category: "FILMCÍM", puzzle: "DŰNE MÁSODIK RÉSZ", hint: "Paul Atreides és a fremenek háborúja az Arrakis bolygón." },
+    { category: "STREAMING SOROZAT", puzzle: "A VEZÉRCSEL", hint: "Egy árva lány zseniális felemelkedése a sakk világában." },
+    { category: "SOROZAT", puzzle: "A FEHÉR LÓTUSZ", hint: "Luxushotelben játszódó társadalmi szatíra és fekete komédia." },
+    { category: "STREAMING SOROZAT", puzzle: "CSERNOBIL", hint: "Az 1986-os atomkatasztrófa megrázó feldolgozása." },
+    { category: "SOROZAT", puzzle: "SQUID GAME", hint: "Dél-koreai túlélődráma halálos gyermekjátékokkal." },
+    { category: "STREAMING SOROZAT", puzzle: "A KORONA", hint: "II. Erzsébet királynő uralkodásának története." },
+    { category: "FANTASY SOROZAT", puzzle: "VAJÁK", hint: "Ríviai Geralt, a szörnyvadász kalandjai." },
+    { category: "FILMCÍM", puzzle: "BARBIE", hint: "Greta Gerwig rózsaszín és humoros társadalomkritikája." },
+    { category: "MAGYAR FILM", puzzle: "KINCSEM", hint: "A verhetetlen csodakanca és gróf Blaskovich Ernő szerelmi drámája." },
+    { category: "MAGYAR FILM", puzzle: "KONTROLL", hint: "Antal Nimród kultikus metróban játszódó thrillere." },
+    { category: "MAGYAR FILM", puzzle: "TOXIKOMA", hint: "Szabó Győző önéletrajzi filmje Csernus dokival." },
+    { category: "MAGYAR FILM", puzzle: "SZAKÍTÓSTÚDIÓ", hint: "Hazai romantikus vígjáték a szakítások professzionális lebonyolításáról." },
+
+    { category: "TV MŰSOR", puzzle: "SZOMSZÉDOK TELEREGÉNY", hint: "Ikonikus teleregény a Gazdagréti lakótelepről Lenke nénivel." },
+    { category: "FILMCÍM", puzzle: "A TANÚ", hint: "Bacsó Péter szatírája: A nemzetközi helyzet fokozódik!" },
+    { category: "FILMCÍM", puzzle: "INDUL A BAKTERHÁZ", hint: "Regős Bendegúz és a bakter felejthetetlen története." },
+    { category: "FILMCÍM", puzzle: "ÜVEGTIGRIS", hint: "Lali büfékocsija az út szélén: Ízirájder, öcsém!" },
+    { category: "RAJZFILM", puzzle: "MACSKAFOGÓ", hint: "Grabowski, Lusta Dick és Teufel macska-egér háborúja." },
+    { category: "FILMCÍM", puzzle: "A POGÁNY MADONNA", hint: "Ötvös Csöpi első legendás balatoni nyomozása Kardos doktorral." },
+    { category: "RAJZFILM", puzzle: "VUK A KISRÓKA", hint: "Fekete István regényéből készült örökzöld animáció." },
+    { category: "RAJZFILM", puzzle: "A MÉZGA CSALÁD", hint: "Géza, Paula, Aladár és MZ/X a jövőből." },
+    { category: "MESE", puzzle: "SÜSÜ A SÁRKÁNY", hint: "Az egyfejű jólelkű sárkány és a Királyfi barátsága." },
+    { category: "FILMSOROZAT", puzzle: "KEMÉNYKALAP ÉS KRUMPLIORR", hint: "A Bagaméri fagylaltos és a bátor gyermekcsapat kalandjai." },
+    { category: "TELEVÍZIÓ", puzzle: "JÁTÉK HATÁROK NÉLKÜL", hint: "Legendás európai vetélkedő vicces jelmezekkel és vízi pályákkal." },
+    { category: "MESE", puzzle: "POM POM MESÉI", hint: "Picúr és a sapkaként hordható barátja, valamint Gombóc Artúr." },
+
+    { category: "POPZENE", puzzle: "AZAHRIAH", hint: "Háromszor töltötte meg egymás után a Puskás Arénát." },
+    { category: "EGYÜTTES", puzzle: "CARSON COMA", hint: "Fiatalos, energikus hazai indie-rock zenekar." },
+    { category: "ZENE", puzzle: "HALOTT PÉNZ", hint: "Otthonról hoztam, és Darabokra törted a szívem slágerek." },
+    { category: "POPZENE", puzzle: "DZSÚDLÓ", hint: "Spannol, Hiszti és Kincsem dalok énekese." },
+    { category: "ZENE", puzzle: "VALMAR ÉS SZIKORA", hint: "Az Úristen című gigasláger előadói." },
+    { category: "ELŐADÓ", puzzle: "BETON HOFI", hint: "Közéleti és szókimondó magyar rapper, trap előadó." },
+    { category: "KLASSZIKUS SLÁGER", puzzle: "GYÖNGYHAJÚ LÁNY", hint: "Az Omega együttes világhírűvé vált rockballadája." },
+    { category: "ZENE", puzzle: "PETRÓLEUMLÁMPA", hint: "Az Illés együttes megunhatatlan, vidám slágere." },
+    { category: "ELŐADÓ", puzzle: "RÚZSA MAGDI", hint: "A Megasztár győzteséből lett elismert hazai pop-királynő." },
+    { category: "ROCKZENE", puzzle: "A KÖR KÖZEPÉN ÁLLOK", hint: "Pataky Attila és az Edda Művek ikonikus himnusza." },
+    { category: "SLÁGER", puzzle: "PANCSIKOLÓ KISLÁNY", hint: "Pancsolni jó, pancsolni muszáj retro sláger." },
+
+    { category: "KÖZMONDÁS", puzzle: "KÖLCSÖNKENYÉR VISSZAJÁR", hint: "Amit másnak adsz, jót vagy rosszat, viszonzásra lel." },
+    { category: "SZÓLÁS", puzzle: "MEGÁLL AZ ÉSZ", hint: "Meglepődés, döbbenet vagy értetlenség kifejezése." },
+    { category: "KÖZMONDÁS", puzzle: "SOK LÚD DISZNÓT GYŐZ", hint: "A túlerő képes legyőzni az erősebb magányos ellenfelet is." },
+    { category: "SZÓLÁS", puzzle: "NEM BABRA MEGY A JÁTÉK", hint: "Nagy a tét, komoly dologról van szó." },
+    { category: "KÖZMONDÁS", puzzle: "JOBB MA EGY VERÉB MINT HOLNAP EGY TÚZOK", hint: "A biztos kicsi többet ér, mint a bizonytalan nagy." },
+    { category: "SZÓLÁS", puzzle: "A KÖRMÉRE ÉG A GYERTYA", hint: "Nagyon szorítja az idő, azonnal cselekednie kell." },
+    { category: "SZÓLÁS", puzzle: "KÖTI AZ EBET A KARÓHOZ", hint: "Makacsul ragaszkodik az álláspontjához." },
+    { category: "KÖZMONDÁS", puzzle: "KI KORÁN KEL ARANYAT LEL", hint: "A szorgalom és a korai indulás meghozza a gyümölcsét." },
+    { category: "SZÓLÁS", puzzle: "ESŐ UTÁN KÖPÖNYEG", hint: "Késő bánat, utólag már nem lehet segíteni a bajon." },
+    { category: "SZÓLÁS", puzzle: "BELEHÚZOTT A CSŐBE", hint: "Csapdába csalták vagy rászedték a gyanútlant." },
+
+    { category: "TECHNOLÓGIA", puzzle: "MESTERSÉGES INTELLIGENCIA", hint: "Gépi tanuláson alapuló forradalmi számítástechnika." },
+    { category: "DIGITÁLIS VILÁG", puzzle: "FELHŐALAPÚ TÁRHELY", hint: "Nem a gépeden, hanem távoli szervereken őrzött adatok." },
+    { category: "MODERN ÉLET", puzzle: "BAKANCSLISTÁS ÉLMÉNY", hint: "Olyan dolog, amit az ember az élete során mindenképp meg akar tenni." },
+    { category: "MODERN ÉLET", puzzle: "HOME OFFICE MUNKA", hint: "Otthonról, távmunkában végzett kényelmes munka." },
+    { category: "DIGITÁLIS VILÁG", puzzle: "KRIPTOVALUTA BÁNYÁSZAT", hint: "Nagy teljesítményű videókártyákkal végzett blokklánc-művelet." },
+    { category: "GASZTRONÓMIA", puzzle: "KÉZMŰVES HAMBURGER", hint: "Nem gyorséttermi, hanem minőségi húsból készült prémium szendvics." },
+    { category: "GASZTRONÓMIA", puzzle: "HORTOBÁGYI HÚSOS PALACSINTA", hint: "Darált hússal töltött, paprikás mártással meglocsolt előétel." },
+    { category: "ÉDESSÉG", puzzle: "SOMLÓI GALUSKA", hint: "Piskóta, csokiöntet, tejszínhab és rumos dió együttese." },
+    { category: "GASZTRONÓMIA", puzzle: "BAJAI HALÁSZLÉ GYUFATÉSZTÁVAL", hint: "Duna menti klasszikus halétel gazdagon fűszerezve." },
+
+    { category: "MAGYARORSZÁG", puzzle: "KILENCLYUKÚ HÍD", hint: "A Hortobágy legnevezetesebb műemléke." },
+    { category: "MŰVÉSZET", puzzle: "ÁSÍTÓ INAS", hint: "Munkácsy Mihály párizsi korszakának egyik leghíresebb festménye." },
+    { category: "IRODALOM", puzzle: "A PÁL UTCAI FIÚK", hint: "Molnár Ferenc világhírű regénye Nemecsek Ernőről." },
+    { category: "IRODALOM", puzzle: "TÜSKEVÁR", hint: "Fekete István ifjúsági regénye a Kis-Balaton nádasában." },
+    { category: "FÖLDRAJZ", puzzle: "BALATONFÜRED", hint: "Az északi part történelmi fürdővárosa, a Tagore sétány otthona." },
+    { category: "FÖLDRAJZ", puzzle: "AGGTELEKI CSEPPKŐBARLANG", hint: "Világörökségi védettségű természeti csoda a Baradla-barlanggal." },
+    { category: "TÖRTÉNELEM", puzzle: "MÁTYÁS KIRÁLY FEKETE SEREGE", hint: "A Hunyadi-kor híres, fegyelmezett zsoldoshadserege." },
+    { category: "MŰVÉSZET", puzzle: "SZENT KORONA ÉS PALÁST", hint: "A magyar államiság ezeréves jelképei az Országházban." }
+];
+
+// =====================================================================
+// 🔥 FIREBASE REALTIME DATABASE KEZELŐ
+// =====================================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyDkdh3W8QHHtDcM3O7_m_unhDgxoQ5oSfQ",
+  authDomain: "szerencsekerek20260807.firebaseapp.com",
+  projectId: "szerencsekerek20260807",
+  storageBucket: "szerencsekerek20260807.firebasestorage.app",
+  messagingSenderId: "362866366988",
+  appId: "1:362866366988:web:566e3c0f9dc376d341ac29",
+  databaseURL: FIREBASE_DB_URL
+};
+
+let db = null;
+try {
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    db = firebase.database();
+} catch(e) {
+    console.warn("Firebase betöltési figyelmeztetés:", e);
+}
+
+async function fbPut(path, data) {
+    if (!db) return null;
+    try { await db.ref(path).set(data); return data; } catch(e) { return null; }
+}
+async function fbPatch(path, data) {
+    if (!db) return null;
+    try { await db.ref(path).update(data); return data; } catch(e) { return null; }
+}
+async function fbGet(path) {
+    if (!db) return null;
+    try { const snap = await db.ref(path).once('value'); return snap.exists() ? snap.val() : null; } catch(e) { return null; }
+}
+async function fbDelete(path) {
+    if (!db) return true;
+    try { await db.ref(path).remove(); return true; } catch(e) { return null; }
+}
+
+// =====================================================================
+// 🔄 FELADVÁNYOK DINAMIKUS BETÖLTÉSE & ISMETLŐDÉSGÁTLÓ MOTOR
+// =====================================================================
+function updatePuzzleCounterUI() {
+    const badge = document.getElementById('puzzle-count-txt');
+    const seenBadge = document.getElementById('puzzle-seen-txt');
+    if (badge) badge.textContent = `📚 Feladványtár: ${allPuzzles.length} db aktív feladvány`;
+    if (seenBadge) {
+        const pct = allPuzzles.length > 0 ? Math.round((userSeenPuzzleHashes.size / allPuzzles.length) * 100) : 0;
+        seenBadge.textContent = `Kijátszva: ${userSeenPuzzleHashes.size}/${allPuzzles.length} (${pct}%)`;
+    }
+}
+
+window.handleSheetPuzzlesJSONP = function(data) {
+    if (!data || !data.table || !data.table.rows) return;
+    let addedCount = 0;
+
+    data.table.rows.forEach(r => {
+        if (!r || !r.c) return;
+        const col0 = r.c[0] && r.c[0].v ? String(r.c[0].v).trim() : '';
+        const col1 = r.c[1] && r.c[1].v ? String(r.c[1].v).trim() : '';
+        const col2 = r.c[2] && r.c[2].v ? String(r.c[2].v).trim() : '';
+
+        if (col0 && col1) {
+            let category = col0.toUpperCase();
+            let puzzle = col1.toUpperCase();
+            let hint = col2 || "Gondolkozzon a kategórián és a betűkön!";
+
+            if (col1.length > col0.length && col0.length <= 25) {
+                category = col0.toUpperCase();
+                puzzle = col1.toUpperCase();
+            }
+
+            const exists = allPuzzles.some(p => p.puzzle === puzzle);
+            if (!exists && puzzle.length >= 3) {
+                allPuzzles.push({ category, puzzle, hint });
+                addedCount++;
+            }
+        }
+    });
+
+    updatePuzzleCounterUI();
+};
+
+function fetchGoogleSheetPuzzles() {
+    const oldScript = document.getElementById('gsheet-puzzle-script');
+    if (oldScript) oldScript.remove();
+
+    const s = document.createElement('script');
+    s.id = 'gsheet-puzzle-script';
+    s.src = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=responseHandler:handleSheetPuzzlesJSONP&gid=0&_nocache=${Date.now()}`;
+    document.body.appendChild(s);
+}
+
+setInterval(fetchGoogleSheetPuzzles, 30000);
+
+async function loadCloudSeenPuzzles() {
+    if (!myPlayerName) return;
+    const cleanKey = myPlayerName.replace(/[^a-zA-Z0-9]/g, '_');
+    try {
+        const cloudData = await fbGet(`user_seen_puzzles/${cleanKey}`);
+        if (cloudData && Array.isArray(cloudData.seenHashes)) {
+            userSeenPuzzleHashes = new Set(cloudData.seenHashes);
+        }
+    } catch(e) {}
+    updatePuzzleCounterUI();
+}
+
+async function markPuzzleAsSeen(puzzleObj) {
+    if (!myPlayerName || !puzzleObj) return;
+    const hash = `${puzzleObj.category}_${puzzleObj.puzzle}`.replace(/[^a-zA-Z0-9]/g, '_');
+    userSeenPuzzleHashes.add(hash);
+
+    if (userSeenPuzzleHashes.size >= allPuzzles.length) {
+        userSeenPuzzleHashes.clear();
+        userSeenPuzzleHashes.add(hash);
+    }
+
+    const cleanKey = myPlayerName.replace(/[^a-zA-Z0-9]/g, '_');
+    try {
+        await fbPut(`user_seen_puzzles/${cleanKey}`, {
+            seenHashes: Array.from(userSeenPuzzleHashes),
+            updatedAt: Date.now()
+        });
+    } catch(e) {}
+    updatePuzzleCounterUI();
+}
+
+async function getValidUnusedPuzzle() {
+    if (allPuzzles.length === 0) {
+        allPuzzles = [...BUILTIN_PUZZLES];
+    }
+
+    let unseen = allPuzzles.filter(p => {
+        const hash = `${p.category}_${p.puzzle}`.replace(/[^a-zA-Z0-9]/g, '_');
+        return !userSeenPuzzleHashes.has(hash);
+    });
+
+    if (unseen.length === 0) {
+        userSeenPuzzleHashes.clear();
+        unseen = [...allPuzzles];
+    }
+
+    const picked = unseen[Math.floor(Math.random() * unseen.length)];
+    await markPuzzleAsSeen(picked);
+    return picked;
+}
+
+// =====================================================================
+// ☸️ KERÉK SZELETEK
+// =====================================================================
+function getWheelForRound(roundNum, hintClaimedThisRound = false) {
+    let hintSeg = hintClaimedThisRound 
+        ? { label: "10000 Ft", value: 10000, color: "#a855f7" }
+        : { label: "SEGÍTSÉG", value: "hint", color: "#06b6d4" };
+
+    if (roundNum === 1) {
+        return [
+            { label: "100 Ft", value: 100, color: "#10b981" },
+            { label: "250 Ft", value: 250, color: "#00e5ff" },
+            { label: "500 Ft", value: 500, color: "#8b5cf6" },
+            { label: "750 Ft", value: 750, color: "#ec4899" },
+            { label: "1000 Ft", value: 1000, color: "#ffd700" },
+            { label: "CSŐD", value: "bankrupt", color: "#f43f5e" },
+            { label: "300 Ft", value: 300, color: "#3b82f6" },
+            { label: "KIMARADSZ", value: "lose_turn", color: "#475569" },
+            { label: "1500 Ft", value: 1500, color: "#f59e0b" },
+            hintSeg
+        ];
+    } else if (roundNum === 2) {
+        return [
+            { label: "250 Ft", value: 250, color: "#10b981" },
+            { label: "500 Ft", value: 500, color: "#00e5ff" },
+            { label: "1000 Ft", value: 1000, color: "#8b5cf6" },
+            { label: "1500 Ft", value: 1500, color: "#ec4899" },
+            { label: "2000 Ft", value: 2000, color: "#ffd700" },
+            { label: "CSŐD", value: "bankrupt", color: "#f43f5e" },
+            { label: "RABLÁS", value: "steal", color: "#dc2626" },
+            { label: "KIMARADSZ", value: "lose_turn", color: "#475569" },
+            { label: "2500 Ft", value: 2500, color: "#f59e0b" },
+            hintSeg
+        ];
+    } else {
+        return [
+            { label: "500 Ft", value: 500, color: "#10b981" },
+            { label: "1000 Ft", value: 1000, color: "#00e5ff" },
+            { label: "2000 Ft", value: 2000, color: "#8b5cf6" },
+            { label: "3000 Ft", value: 3000, color: "#ec4899" },
+            { label: "5000 Ft", value: 5000, color: "#ffd700" },
+            { label: "CSŐD", value: "bankrupt", color: "#f43f5e" },
+            { label: "RABLÁS", value: "steal", color: "#dc2626" },
+            { label: "KIMARADSZ", value: "lose_turn", color: "#475569" },
+            { label: "10000 Ft", value: 10000, color: "#a855f7" },
+            hintSeg
+        ];
+    }
+}
+
+let wheelSegments = getWheelForRound(1, false);
+
+function toggleMute() {
+    audioEnabled = !audioEnabled;
+    const btn = document.getElementById('mute-btn');
+    if (btn) {
+        btn.textContent = audioEnabled ? "🔊 Hang" : "🔇 Néma";
+        btn.classList.toggle('mute', !audioEnabled);
+    }
+}
+
+function showLobbyView() {
+    if (roomListenerRef) roomListenerRef.off();
+    document.getElementById('lobby-view').style.display = 'flex';
+    document.getElementById('game-area').style.display = 'none';
+    document.getElementById('waiting-overlay').style.display = 'none';
+    document.getElementById('room-info-badge').style.display = 'none';
+}
+
+function showGameView() {
+    document.getElementById('lobby-view').style.display = 'none';
+    document.getElementById('waiting-overlay').style.display = 'none';
+    document.getElementById('game-area').style.display = 'flex';
+}
+
+function getTodayDateString() { 
+    const d = new Date(); 
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; 
+}
+
+function getWeeklyId(date = new Date()) {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    const day = d.getDay() || 7;
+    d.setDate(d.getDate() - day + 1);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const dayM = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${dayM}`;
+}
+
+function getPreviousWeeklyId() {
+    const d = new Date(); d.setDate(d.getDate() - 7); return getWeeklyId(d);
+}
+
+function getVowelCost() {
+    return gameState.round === 1 ? 250 : (gameState.round === 2 ? 500 : 750);
+}
+
+function getHintCost() {
+    const costs = [500, 1500, 3000, 5000];
+    const count = gameState.hintCount || 0;
+    return costs[Math.min(count, costs.length - 1)];
+}
 
 function showModal({ title, text, showInput = false, confirmText = 'Rendben', cancelText = 'Mégse', showCancel = true }) {
     return new Promise(resolve => {
@@ -1316,7 +1371,7 @@ function showModal({ title, text, showInput = false, confirmText = 'Rendben', ca
     });
 }
 
-// 💰 BIZTOS, ADATVESZTÉS-MENTES HETI EGYENLEG KEZELŐ
+// 💰 BIZTOS HETI EGYENLEG KEZELŐ
 let currentCachedBalance = null;
 
 async function updateNamecardUI() {
@@ -1356,7 +1411,6 @@ async function getUserWeeklyBalance() {
 async function updateUserWeeklyBalance(amountChange) {
     if (!myPlayerName) return 1000;
     
-    // 1. Azonnali helyi frissítés (kizárja az internetes késésből fakadó adatvesztést)
     if (currentCachedBalance === null) {
         await getUserWeeklyBalance();
     }
@@ -1365,7 +1419,6 @@ async function updateUserWeeklyBalance(amountChange) {
     const cleanKey = myPlayerName.replace(/[^a-zA-Z0-9]/g, '_');
     const weekId = getWeeklyId();
 
-    // 2. Mentés a Firebase adatbázisba
     try {
         await fbPut(`leaderboard/${cleanKey}`, {
             name: myPlayerName, 
@@ -1375,7 +1428,6 @@ async function updateUserWeeklyBalance(amountChange) {
         });
     } catch(e) {}
 
-    // 3. Fenti névjegy egyenleg azonnali frissítése a képernyőn
     await updateNamecardUI();
     return currentCachedBalance;
 }
@@ -1398,7 +1450,7 @@ async function checkWeeklyChampion() {
                 isWeeklyChampion = true;
                 showModal({
                     title: "👑 MÚLT HETI BAJNOK!",
-                    text: `Gratulálunk <strong>${myPlayerName}</strong>!<br>Te voltál az előző hét győztese! Ezen a héten megkaptad az <strong style="color:var(--neon-gold)">Arany Koronát (👑)</strong>!`,
+                    text: `Gratulálunk <strong>${myPlayerName}</strong>!<br>Te voltál az előző hét győztese! Megkaptad az <strong style="color:var(--neon-gold)">Arany Koronát (👑)</strong>!`,
                     showCancel: false
                 });
             }
@@ -1407,8 +1459,10 @@ async function checkWeeklyChampion() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+    allPuzzles = [...BUILTIN_PUZZLES];
+    updatePuzzleCounterUI();
     drawWheel();
-    await loadGoogleSheetsPuzzles();
+    fetchGoogleSheetPuzzles();
     showLobbyView();
 
     const stuckBtn = document.getElementById('stuck-btn');
@@ -1447,6 +1501,7 @@ async function ensurePlayerName() {
     if (!myPlayerName) {
         myPlayerName = await showModal({ title: 'SzerencseBajnok Belépés', text: 'Adja meg a nevét a kezdéshez:', showInput: true, showCancel: false }) || 'Játékos 1';
         await checkWeeklyChampion();
+        await loadCloudSeenPuzzles();
     }
     const displayName = isWeeklyChampion ? `👑 ${myPlayerName}` : myPlayerName;
     gameState.players[0].name = displayName;
@@ -1454,6 +1509,9 @@ async function ensurePlayerName() {
     await updateNamecardUI();
 }
 
+// =====================================================================
+// ☸️ SZERENCSEKERÉK (1P VS ROBOT ÖDÖN) TELJES JÁTÉKMOTOR
+// =====================================================================
 async function startSoloGame() {
     await ensurePlayerName();
     currentGameType = 'wheel';
@@ -1474,12 +1532,15 @@ async function startSoloGame() {
         hintUnlocked: false, hintText: '',
         hostMessage: `Adás elindult! Szobakód: <strong>${roomCode}</strong>.`, updatedAt: Date.now()
     };
-    await fbPut(`rooms/${roomCode}`, initialRoomData);
-    subscribeToFirebaseRoom(roomCode);
+
+    if (db) {
+        await fbPut(`rooms/${roomCode}`, initialRoomData);
+        subscribeToFirebaseRoom(roomCode);
+    }
     initRound(1, puz);
 }
 
-// ⚔️ ONLINE SZOBÁK HIBÁTLAN GRAFIKUS SZINKRONIZÁCIÓVAL
+// ⚔️ ONLINE PÁRBAJ SZOBÁK
 async function createOnlineDuelRoom(type = 'wheel') {
     await ensurePlayerName();
     currentGameType = type; myPlayerIndex = 0; isSpectator = false;
@@ -1496,13 +1557,15 @@ async function createOnlineDuelRoom(type = 'wheel') {
         hostMessage: `Párbaj szoba készen áll! Kód: <strong>${roomCode}</strong>.`, updatedAt: Date.now()
     };
 
-    await fbPut(`rooms/${roomCode}`, initialRoomData);
+    if (db) {
+        await fbPut(`rooms/${roomCode}`, initialRoomData);
+        subscribeToFirebaseRoom(roomCode);
+    }
     document.getElementById('lobby-view').style.display = 'none';
     document.getElementById('game-area').style.display = 'none';
     document.getElementById('waiting-code-display').textContent = roomCode;
     document.getElementById('waiting-overlay').style.display = 'block';
     updateRoomBadge(roomCode, 0);
-    subscribeToFirebaseRoom(roomCode);
 }
 
 async function joinOnlineRoomPrompt(type) {
@@ -1540,10 +1603,11 @@ function updateRoomBadge(code, count) {
 }
 
 function subscribeToFirebaseRoom(code) {
+    if (!db) return;
     if (roomListenerRef) roomListenerRef.off();
     roomListenerRef = db.ref('rooms/' + code);
     roomListenerRef.on('value', (snapshot) => {
-        if (!snapshot.exists()) { alert("A szoba megszűnt."); showLobbyView(); return; }
+        if (!snapshot.exists()) { return; }
         const room = snapshot.val();
         currentGameType = room.gameType || 'wheel';
 
@@ -1589,7 +1653,6 @@ function syncStateFromRoom(room) {
     gameState.hintUnlocked = room.hintUnlocked || false;
     gameState.hintText = room.hintText || '';
 
-    // KÖRÖNKÉNTI SEGÍTSÉG KIÍRÁSA A KÉPERNYŐN
     const hintContainer = document.getElementById('active-hint-container');
     if (gameState.hintUnlocked && gameState.hintText) {
         hintContainer.style.display = 'block';
@@ -1625,13 +1688,13 @@ function syncStateFromRoom(room) {
         lastHandledLetterCallTime = room.lastLetterCall.timestamp;
         showLetterCallAnnouncement(room.lastLetterCall.playerName, room.lastLetterCall.letter);
     }
-     if (room.gamePhase === 'ROUND_OVER' && gameState.phase !== 'ROUND_OVER_HANDLED') {
+    
+    if (room.gamePhase === 'ROUND_OVER' && gameState.phase !== 'ROUND_OVER_HANDLED') {
         gameState.phase = 'ROUND_OVER_HANDLED';
         document.querySelectorAll('.puzzle-tile[data-letter]').forEach(t => t.classList.add('revealed'));
-        AudioEngine.playFanfare();
+        window.AudioEngine.playFanfare();
 
         if (myPlayerIndex === 0) {
-            // Megakadályozzuk a dupla időzítő indítását
             if (roundTransitionTimer) clearTimeout(roundTransitionTimer);
             roundTransitionTimer = setTimeout(async () => {
                 roundTransitionTimer = null;
@@ -1644,8 +1707,7 @@ function syncStateFromRoom(room) {
                 }
             }, 5000);
         }
-    }
-     else if (room.gamePhase !== 'ROUND_OVER' && room.gamePhase !== 'SPINNING') {
+    } else if (room.gamePhase !== 'ROUND_OVER' && room.gamePhase !== 'SPINNING') {
         gameState.phase = room.gamePhase || 'IDLE';
     }
 
@@ -1679,7 +1741,7 @@ function isLetterFullyRevealedOnBoard(letter) {
 }
 
 async function pushStateToFirebase(extraData = {}) {
-    if (!roomCode || isSpectator) return;
+    if (!roomCode || isSpectator || !db) return;
     try {
         await db.ref('rooms/' + roomCode).update({
             gameType: currentGameType,
@@ -1709,20 +1771,16 @@ function initRound(roundNum, puzzle) {
     gameState.phase = 'IDLE';
     gameState.currentPuzzle = puzzle;
     
-    // AZ ELŐZŐ KÖRÖS SEGÍTSÉG TÖRLÉSE A KÉPERNYŐRŐL ÉS A SEGÍTSÉG VISSZAÁLLÍTÁSA A KERÉKRE!
     gameState.hintUnlocked = false;
     gameState.hintText = '';
     document.getElementById('active-hint-container').style.display = 'none';
 
-    // FORDULÓK ÉS KASSZA SZABÁLYZAT:
     if (roundNum === 3) {
-        // 3. körben mindent felteszünk: a teljes eddigi kassza átkerül az aktív egyenlegbe, a kassza kiürül!
         gameState.players[0].score = gameState.players[0].totalScore;
         gameState.players[1].score = gameState.players[1].totalScore;
         gameState.players[0].totalScore = 0;
         gameState.players[1].totalScore = 0;
     } else {
-        // 1. és 2. körben nulláról indul a gyűjtögetés az adott körben
         gameState.players[0].score = 0;
         gameState.players[1].score = 0;
     }
@@ -1797,7 +1855,7 @@ function autoSpin(power = 0.5) {
         hostMessage: `<strong>${getActivePlayer().name}</strong> pörgeti a kereket!`
     };
 
-    if (roomCode) {
+    if (roomCode && db) {
         fbPatch(`rooms/${roomCode}`, spinData);
     } else {
         executeSyncedSpin(startRot, targetRotation, startTime, duration, targetSegIndex);
@@ -1805,7 +1863,7 @@ function autoSpin(power = 0.5) {
 }
 
 function startBoosterCharge() {
-    AudioEngine.init();
+    window.AudioEngine.init();
     if (!isMyTurn() || gameState.spinInProgress || gameState.phase !== 'IDLE') return;
 
     if (!boosterCharging) {
@@ -1822,7 +1880,6 @@ function startBoosterCharge() {
     }
 }
 
-// ⚡ REALTIME PATTOGÓ POINTER & FIZIKAI FORGATÁS
 function executeSyncedSpin(startRotation, endRotation, startTime, duration, landedIndex) {
     gameState.spinInProgress = true;
     const wheelEl = document.getElementById('wheel');
@@ -1843,7 +1900,7 @@ function executeSyncedSpin(startRotation, endRotation, startTime, duration, land
         if (currentSeg !== lastSeg) { 
             lastSeg = currentSeg; 
             pointerAngle = -22 * (1 - progress * 0.5);
-            AudioEngine.playTick(1.0 + (progress * 0.3)); 
+            window.AudioEngine.playTick(1.0 + (progress * 0.3)); 
         }
 
         pointerAngle += (0 - pointerAngle) * 0.28;
@@ -1854,7 +1911,7 @@ function executeSyncedSpin(startRotation, endRotation, startTime, duration, land
         } else {
             gameState.currentRotation = endRotation; gameState.spinInProgress = false;
             if (pointerEl) pointerEl.style.transform = `translateX(-50%) rotate(0deg)`;
-            AudioEngine.playLand();
+            window.AudioEngine.playLand();
             if (isMyTurn() || (gameState.mode === 'solo' && gameState.activePlayerIndex === 1)) {
                 handleSpinResult(wheelSegments[landedIndex]);
             }
@@ -1866,7 +1923,7 @@ function executeSyncedSpin(startRotation, endRotation, startTime, duration, land
 function handleSpinResult(seg) {
     const active = getActivePlayer();
     
-    // 1. CSŐD MEZŐ
+    // CSŐD
     if (seg.value === 'bankrupt') {
         active.score = 0; 
         updateHostMessage(`<strong>CSŐD!</strong> ${active.name} pontjai elvesztek!`);
@@ -1874,17 +1931,17 @@ function handleSpinResult(seg) {
         return;
     }
     
-    // 2. KIMARADSZ MEZŐ
+    // KIMARADSZ
     if (seg.value === 'lose_turn') {
-        AudioEngine.playWrong();
+        window.AudioEngine.playWrong();
         updateHostMessage(`<strong>KIMARADSZ!</strong> A pörgetés joga átkerül!`);
         setTimeout(switchTurn, 1800); 
         return;
     }
 
-    // 3. 🏴‍☠️ RABLÁS MEZŐ (ELRABOLJA AZ ELLENFÉL ÖSSZES PÉNZÉT!)
+    // RABLÁS
     if (seg.value === 'steal') {
-        AudioEngine.playCoinSound();
+        window.AudioEngine.playCoinSound();
         const oppIdx = gameState.activePlayerIndex === 0 ? 1 : 0;
         const stolenAmount = gameState.players[oppIdx].score;
 
@@ -1901,10 +1958,10 @@ function handleSpinResult(seg) {
         return;
     }
     
-    // 4. 💡 SEGÍTSÉG MEZŐ (CSAK 1 PÉLDÁNYBAN!)
+    // SEGÍTSÉG
     if (seg.value === 'hint') {
-        AudioEngine.playCorrect();
-        const hintMsg = gameState.currentPuzzle?.hint || "Ez egy klasszikus magyar feladvány.";
+        window.AudioEngine.playCorrect();
+        const hintMsg = gameState.currentPuzzle?.hint || "Ez egy klasszikus feladvány.";
         
         gameState.hintUnlocked = true;
         gameState.hintText = hintMsg;
@@ -1913,29 +1970,25 @@ function handleSpinResult(seg) {
         document.getElementById('active-hint-text').textContent = hintMsg;
 
         transformHintSliceToTenThousand();
-
         updateHostMessage(`💡 <strong>SEGÍTSÉG KIPÖRGETVE!</strong> Utalás: "${hintMsg}"`);
         
-        // 🛑 CSAK ÉS KIZÁRÓLAG AKKOR UGRASZTUNK FEL ABLAKOT, HA TE PÖRGETTED KI!
-        // Ha a robot pörgette ki, nem jelenik meg felugró ablak, hanem a robot automatikusan folytatja a játékot!
         if (isMyTurn()) {
             showModal({
                 title: "💡 SEGÍTSÉG KIPÖRGETVE!",
-                text: `Gratulálunk! Kipörgetted a SEGÍTSÉG mezőt!<br>A kapott utalás ezen forduló végéig kint marad a képernyőn:<br><br><strong style="color:var(--neon-cyan); font-size:1.1rem; background:rgba(0,229,255,0.1); padding:8px 14px; border-radius:8px; border:1px solid var(--neon-cyan); display:inline-block; margin-top:6px;">"${hintMsg}"</strong><br><br>A SEGÍTSÉG mező helyén ebben a fordulóban mostantól <strong>10 000 Ft</strong> található!`,
-                showCancel: false, 
-                confirmText: "Kiváló!"
+                text: `Kipörgetted a SEGÍTSÉG mezőt!<br><br><strong style="color:var(--neon-cyan); font-size:1.1rem; background:rgba(0,229,255,0.1); padding:8px 14px; border-radius:8px; border:1px solid var(--neon-cyan); display:inline-block;">"${hintMsg}"</strong><br><br>A SEGÍTSÉG helyén ezentúl <strong>10 000 Ft</strong> van!`,
+                showCancel: false, confirmText: "Kiváló!"
             });
         }
 
         gameState.phase = 'IDLE';
         pushStateToFirebase(); 
         updateUI(); 
-        checkAITurn(); // 🚀 ROBOT AUTOMATIKUS TOVÁBBINDÍTÁSA
+        checkAITurn();
         return;
     }
 
-    // 5. NORMÁL PÉNZÖSSZEG KIPÖRGETÉSE
-    AudioEngine.playCorrect();
+    // PÉNZÖSSZEG
+    window.AudioEngine.playCorrect();
     gameState.currentSpinValue = parseInt(seg.value) || 500;
     gameState.phase = 'AWAITING_CONSONANT';
     updateHostMessage(`Kipörgetett érték: <strong>${seg.value} Ft</strong>! Válasszon egy mássalhangzót!`);
@@ -1948,7 +2001,7 @@ function handleSpinResult(seg) {
 }
 
 function showLetterCallAnnouncement(playerName, letter) {
-    AudioEngine.playLetterCall();
+    window.AudioEngine.playLetterCall();
     const toast = document.getElementById('letter-announce-toast');
     document.getElementById('toast-player-title').textContent = `${playerName.toUpperCase()} ÉRTESÍTÉS:`;
     document.getElementById('toast-letter-badge').textContent = `[ ${letter} ]`;
@@ -1957,7 +2010,7 @@ function showLetterCallAnnouncement(playerName, letter) {
 }
 
 function handleLetterGuess(letter) {
-    AudioEngine.init();
+    window.AudioEngine.init();
     if (!isMyTurn() || gameState.spinInProgress) return;
     const isVowel = VOWELS.includes(letter);
     const cost = getVowelCost();
@@ -2003,7 +2056,7 @@ function processConsonantGuess(letter) {
                 if (!checkPuzzleSolvedAuto()) { pushStateToFirebase(); updateUI(); checkAITurn(); }
             });
         } else {
-            AudioEngine.playWrong();
+            window.AudioEngine.playWrong();
             setTimeout(switchTurn, 1600);
         }
     }, 400);
@@ -2038,13 +2091,12 @@ function processVowelGuess(letter) {
                 if (!checkPuzzleSolvedAuto()) { pushStateToFirebase(); updateUI(); checkAITurn(); }
             });
         } else {
-            AudioEngine.playWrong();
+            window.AudioEngine.playWrong();
             setTimeout(switchTurn, 1600);
         }
     }, 400);
 }
 
-// 📌 VIZUÁLIS BETŰ-VILLANÁS (REALTIME HANGGAL, CSENDES ÁTFORDULÁSSAL)
 function revealMatchingTilesAnimated(letter, callback) {
     if (animatingLetters.has(letter)) { if (callback) callback(); return; }
     const tiles = Array.from(document.querySelectorAll(`.puzzle-tile[data-letter="${letter}"]`));
@@ -2056,11 +2108,11 @@ function revealMatchingTilesAnimated(letter, callback) {
         setTimeout(() => {
             const front = tile.querySelector('.tile-front');
             if (front) front.classList.add('highlight-glow');
-            AudioEngine.playCorrect(); // Realtime hang a felvillanás pillanatában!
+            window.AudioEngine.playCorrect();
 
             setTimeout(() => {
                 if (front) front.classList.remove('highlight-glow');
-                tile.classList.add('revealed'); // Csendes átfordulás
+                tile.classList.add('revealed');
 
                 completedCount++;
                 if (completedCount === tiles.length) {
@@ -2069,7 +2121,7 @@ function revealMatchingTilesAnimated(letter, callback) {
                 }
             }, 350);
 
-        }, index * 700);
+        }, index * 600);
     });
 }
 
@@ -2095,16 +2147,16 @@ async function useHintOption() {
 
     const confirmed = await showModal({
         title: "💡 SEGÍTSÉG VÁSÁRLÁS",
-        text: `Biztosan elköltesz segítségre <strong style="color:var(--neon-gold); font-size:1.1rem;">${cost.toLocaleString()} forintot</strong>?`,
+        text: `Biztosan elköltesz segítségre <strong style="color:var(--neon-gold); font-size:1.1rem;">${cost.toLocaleString()} Ft-ot</strong>?`,
         confirmText: "Igen, megveszem", cancelText: "Mégse"
     });
 
     if (confirmed) {
         active.score -= cost;
         gameState.hintCount = (gameState.hintCount || 0) + 1;
-        AudioEngine.playCorrect();
+        window.AudioEngine.playCorrect();
         
-        const hintMsg = gameState.currentPuzzle?.hint || "Ez egy klasszikus magyar feladvány.";
+        const hintMsg = gameState.currentPuzzle?.hint || "Klasszikus magyar feladvány.";
         gameState.hintUnlocked = true;
         gameState.hintText = hintMsg;
 
@@ -2113,7 +2165,7 @@ async function useHintOption() {
 
         await showModal({
             title: "💡 UTALÁS A FELADVÁNYHOZ",
-            text: `A segítség levonva (-${cost.toLocaleString()} Ft). Az utalás a forduló végéig kint marad:<br><br><strong style="color:var(--neon-cyan); font-size:1.1rem; background:rgba(0,229,255,0.1); padding:8px 14px; border-radius:8px; border:1px solid var(--neon-cyan); display:inline-block; margin-top:6px;">"${hintMsg}"</strong>`,
+            text: `A segítség jóváírva (-${cost.toLocaleString()} Ft):<br><br><strong style="color:var(--neon-cyan); font-size:1.1rem; background:rgba(0,229,255,0.1); padding:8px 14px; border-radius:8px; border:1px solid var(--neon-cyan); display:inline-block;">"${hintMsg}"</strong>`,
             showCancel: false, confirmText: "Rendben"
         });
 
@@ -2137,7 +2189,7 @@ function verifyAndExecuteSolve(attemptText) {
     if (cleanAttempt === cleanPuzzle) {
         completeRoundWin();
     } else {
-        AudioEngine.playWrong();
+        window.AudioEngine.playWrong();
         updateHostMessage(`Hibás megfejtés!`);
         setTimeout(switchTurn, 1600);
     }
@@ -2153,7 +2205,7 @@ function checkAITurn() {
             updateHostMessage("🤖 Robot (Ödön) gondolkodik...");
 
             setTimeout(() => {
-                if (revealedRatio > 0.6 && Math.random() < 0.75) {
+                if (revealedRatio > 0.65 && Math.random() < 0.8) {
                     updateHostMessage("🤖 Robot (Ödön) megfejti a rejtvényt!");
                     setTimeout(() => { completeRoundWin(); }, 1200);
                 } else {
@@ -2176,10 +2228,9 @@ function aiPickConsonant() {
     } else { switchTurn(); }
 }
 
-// 🏁 FORDULÓ VÉGI MEGFEJTÉS, KASSZA MENTÉS ÉS BIZTOS MEGJELENÍTÉS
 function completeRoundWin() {
     if (gameState.phase === 'ROUND_OVER' || gameState.phase === 'ROUND_OVER_HANDLED') return;
-    AudioEngine.playFanfare();
+    window.AudioEngine.playFanfare();
     
     document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('visible'));
 
@@ -2187,11 +2238,9 @@ function completeRoundWin() {
     const roundBonus = ROUND_WIN_BONUSES[gameState.round] || 0;
     const earned = winner.score + roundBonus;
     
-    // MENTÉS A KASSZÁBA
     winner.totalScore += earned;
     gameState.phase = 'ROUND_OVER';
 
-    // 💡 BEÉGETJÜK AZ ÖSSZES BETŰT A KITALÁLTAK KÖZÉ, HOGY A TÁBLA NE CSOMAGOLJA ŐKET VISSZA!
     if (gameState.currentPuzzle && gameState.currentPuzzle.puzzle) {
         const pChars = gameState.currentPuzzle.puzzle.toUpperCase().split('');
         pChars.forEach(c => {
@@ -2204,7 +2253,6 @@ function completeRoundWin() {
     updateHostMessage(`🎉 TELJES MEGFEJTÉS: <strong>${gameState.currentPuzzle.puzzle}</strong>!<br>Nyertes: <strong>${winner.name}</strong> (+${earned.toLocaleString()} Ft)! Következő forduló 5 mp múlva...`);
     document.querySelectorAll('.puzzle-tile[data-letter]').forEach(t => t.classList.add('revealed'));
 
-    // Az állapot elküldése – a fordulóváltás egyetlen vezérelt időzítővel fog futni
     pushStateToFirebase();
 }
 
@@ -2218,25 +2266,23 @@ async function handleMatchFinished() {
 
     if (winner) {
         if (winner === p1 && !isSpectator) {
-            // Egyetlen, tiszta jóváírás a heti egyenlegbe és a toplistába egyszerre
             await updateUserWeeklyBalance(winner.totalScore);
-            
             await showModal({
                 title: "🏆 MECCS GYŐZELEM!",
-                text: `Fantasztikus! Megnyerted a párbajt!<br><br>A teljes meccs nyereményed: <strong style="color:var(--neon-gold); font-size:1.3rem;">+${winner.totalScore.toLocaleString()} Ft</strong> hozzáadva a heti egyenlegedhez!`,
+                text: `Gratulálunk! Megnyerted a meccset!<br><br>Nyereményed: <strong style="color:var(--neon-gold); font-size:1.3rem;">+${winner.totalScore.toLocaleString()} Ft</strong> hozzáadva az egyenlegedhez!`,
                 showCancel: false
             });
         } else {
             await showModal({
                 title: "❌ MECCS VESZTÉS",
-                text: `A párbajt <strong>${winner.name}</strong> nyerte (${winner.totalScore.toLocaleString()} Ft).<br>Mivel nem te nyertél, erre a meccsre nem kaptál pontot.`,
+                text: `A mérkőzést <strong>${winner.name}</strong> nyerte (${winner.totalScore.toLocaleString()} Ft).`,
                 showCancel: false
             });
         }
     } else {
         await showModal({
             title: "🤝 DÖNTETLEN MECCS",
-            text: `A meccs döntetlennel zárult (${p1.totalScore.toLocaleString()} Ft)! Pont jóváírás nem történt.`,
+            text: `A meccs döntetlennel zárult (${p1.totalScore.toLocaleString()} Ft).`,
             showCancel: false
         });
     }
@@ -2270,11 +2316,12 @@ function updateUI() {
 }
 
 function setupBoard(puzzleText) {
-    const board = document.getElementById('puzzle-board'); board.innerHTML = '';
+    const board = document.getElementById('puzzle-board'); 
+    board.innerHTML = '';
     const cleanPuzzle = puzzleText.toUpperCase().trim();
     const words = cleanPuzzle.split(' ');
 
-    const maxCharsPerRow = window.innerWidth <= 600 ? 9 : 12;
+    const maxCharsPerRow = window.innerWidth <= 600 ? 10 : 13;
     const rows = [];
     let currentRow = [];
     let currentLen = 0;
@@ -2290,7 +2337,8 @@ function setupBoard(puzzleText) {
     if (currentRow.length > 0) rows.push(currentRow);
 
     rows.forEach(rowWords => {
-        const rowDiv = document.createElement('div'); rowDiv.className = 'puzzle-row';
+        const rowDiv = document.createElement('div'); 
+        rowDiv.className = 'puzzle-row';
 
         rowWords.forEach((word, wordIndex) => {
             word.split('').forEach(char => {
@@ -2349,7 +2397,6 @@ function updateHostMessage(msg) {
     if (el) el.innerHTML = msg;
 }
 
-// ⚙️ TŰÉLES 4K SVG KERÉK
 function drawWheel() {
     const svg = document.getElementById('wheel'); if (!svg) return;
     svg.innerHTML = '';
@@ -2400,14 +2447,9 @@ function polarToCartesian(cx, cy, r, angleInDegrees) {
 }
 
 // =====================================================================
-// ⚡ LÉZER MÁTRIX ENGINE (NAGYOBB TÁBLA, PRÉMIUM DETEKTOR)
+// ⚡ LÉZER MÁTRIX ENGINE
 // =====================================================================
-let minesBet = 100;
-let minesCount = 3;
-let minesActive = false;
-let minesGrid = [];
-let minesRevealedCount = 0;
-let minesMultipliers = [];
+let minesBet = 100, minesCount = 3, minesActive = false, minesGrid = [], minesRevealedCount = 0, minesMultipliers = [];
 
 function openCyberMinesModal() {
     ensurePlayerName().then(async () => {
@@ -2471,17 +2513,13 @@ function renderMinesGrid() {
 }
 
 function countAdjacentLasers(idx) {
-    const row = Math.floor(idx / 5);
-    const col = idx % 5;
+    const row = Math.floor(idx / 5), col = idx % 5;
     let count = 0;
-
     for (let r = row - 1; r <= row + 1; r++) {
         for (let c = col - 1; c <= col + 1; c++) {
             if (r >= 0 && r < 5 && c >= 0 && c < 5 && !(r === row && c === col)) {
-                const neighborIdx = r * 5 + c;
-                if (minesGrid[neighborIdx] && minesGrid[neighborIdx].isMine) {
-                    count++;
-                }
+                const nIdx = r * 5 + c;
+                if (minesGrid[nIdx] && minesGrid[nIdx].isMine) count++;
             }
         }
     }
@@ -2518,7 +2556,7 @@ async function startMinesGame() {
         const el = document.getElementById(`mines-tile-${i}`);
         if (el) { el.className = 'mines-tile'; el.textContent = '⚡'; }
     }
-    AudioEngine.playCorrect();
+    window.AudioEngine.playCorrect();
 }
 
 function handleMinesTileClick(idx) {
@@ -2531,7 +2569,7 @@ function handleMinesTileClick(idx) {
 
     if (tileObj.isMine) {
         minesActive = false;
-        AudioEngine.playWrong();
+        window.AudioEngine.playWrong();
         el.className = 'mines-tile mine';
         el.textContent = '💥';
 
@@ -2543,10 +2581,10 @@ function handleMinesTileClick(idx) {
 
         document.getElementById('mines-start-btn').style.display = 'block';
         document.getElementById('mines-cashout-container').style.display = 'none';
-        showLetterCallAnnouncement(myPlayerName || 'Játékos', "💥 LÉZERRE LÉPTÉL! VESZTETTÉL!");
+        showLetterCallAnnouncement(myPlayerName || 'Játékos', "💥 LÉZERRE LÉPTÉL!");
     } else {
         minesRevealedCount++;
-        AudioEngine.playCoinSound();
+        window.AudioEngine.playCoinSound();
         el.className = 'mines-tile safe';
 
         const adjLasers = countAdjacentLasers(idx);
@@ -2570,7 +2608,7 @@ async function cashoutMinesGame() {
     const winAmt = Math.floor(minesBet * mult);
 
     await updateUserWeeklyBalance(winAmt);
-    AudioEngine.playFanfare();
+    window.AudioEngine.playFanfare();
 
     const newBal = await getUserWeeklyBalance();
     document.getElementById('mines-user-balance').textContent = `${newBal.toLocaleString()} Ft`;
@@ -2584,7 +2622,7 @@ async function cashoutMinesGame() {
         else { tEl.classList.add('disabled'); }
     });
 
-    alert(`🎉 NYERTÉL +${winAmt.toLocaleString()} Ft-ot (${mult.toFixed(2)}x szorzó)! Hozzáadva az egyenlegedhez!`);
+    alert(`🎉 NYERTÉL +${winAmt.toLocaleString()} Ft-ot (${mult.toFixed(2)}x szorzó)!`);
 }
 
 function closeMinesModal() {
@@ -2598,8 +2636,7 @@ function closeMinesModal() {
 // =====================================================================
 // ♠️ BLACKJACK ENGINE
 // =====================================================================
-let bjDeck = [], bjPlayerCards = [], bjDealerCards = [], bjCurrentBet = 50, bjGameActive = false;
-let bjWinStreak = 0;
+let bjDeck = [], bjPlayerCards = [], bjDealerCards = [], bjCurrentBet = 50, bjGameActive = false, bjWinStreak = 0;
 
 function buildFullDeck() {
     const suits = ['♠️', '♥️', '♣️', '♦️'], vals = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
@@ -2632,28 +2669,26 @@ function updateBJStrategyHint() {
 }
 
 async function openStandaloneBlackjack() {
-    try {
-        await ensurePlayerName();
-        bjDeck = buildFullDeck(); bjPlayerCards = []; bjDealerCards = [];
-        bjGameActive = false; bjCurrentBet = 50;
+    await ensurePlayerName();
+    bjDeck = buildFullDeck(); bjPlayerCards = []; bjDealerCards = [];
+    bjGameActive = false; bjCurrentBet = 50;
 
-        const bal = await getUserWeeklyBalance();
-        document.getElementById('bj-user-balance').textContent = `${(bal || 1000).toLocaleString()} Ft`;
-        document.getElementById('bj-current-bet').textContent = `${bjCurrentBet.toLocaleString()} Ft`;
+    const bal = await getUserWeeklyBalance();
+    document.getElementById('bj-user-balance').textContent = `${(bal || 1000).toLocaleString()} Ft`;
+    document.getElementById('bj-current-bet').textContent = `${bjCurrentBet.toLocaleString()} Ft`;
 
-        document.getElementById('bj-bet-controls').style.display = 'flex';
-        document.getElementById('bj-action-buttons').style.display = 'none';
+    document.getElementById('bj-bet-controls').style.display = 'flex';
+    document.getElementById('bj-action-buttons').style.display = 'none';
 
-        document.getElementById('bj-player-cards').innerHTML = '';
-        document.getElementById('bj-dealer-cards').innerHTML = '';
-        document.getElementById('bj-dealer-score').textContent = '?';
-        document.getElementById('bj-player-score').textContent = '0';
-        document.getElementById('bj-deal-btn').textContent = "OSZTÁS INDÍTÁSA";
+    document.getElementById('bj-player-cards').innerHTML = '';
+    document.getElementById('bj-dealer-cards').innerHTML = '';
+    document.getElementById('bj-dealer-score').textContent = '?';
+    document.getElementById('bj-player-score').textContent = '0';
+    document.getElementById('bj-deal-btn').textContent = "OSZTÁS INDÍTÁSA";
 
-        document.getElementById('blackjack-modal').classList.add('visible');
-        updateBJStrategyHint();
-        await updateNamecardUI();
-    } catch(e) {}
+    document.getElementById('blackjack-modal').classList.add('visible');
+    updateBJStrategyHint();
+    await updateNamecardUI();
 }
 
 function addChipBet(amt) { bjCurrentBet += amt; document.getElementById('bj-current-bet').textContent = `${bjCurrentBet.toLocaleString()} Ft`; }
@@ -2689,14 +2724,14 @@ async function startBJHand() {
             const updatedBal = await updateUserWeeklyBalance(winAmt);
             document.getElementById('bj-user-balance').textContent = `${updatedBal.toLocaleString()} Ft`;
             document.getElementById('bj-streak-badge').textContent = `🔥 Széria: ${bjWinStreak} (${multiplier}x)`;
-            AudioEngine.playFanfare();
+            window.AudioEngine.playFanfare();
             showBJHandResult(`🎉 NATURAL BLACKJACK (21)!\nNyertél +${winAmt.toLocaleString()} Ft-ot!`);
         }, 400);
     }
 }
 
 async function dealCardToPlayer() {
-    const card = bjDeck.pop(); bjPlayerCards.push(card); AudioEngine.playCardDeal();
+    const card = bjDeck.pop(); bjPlayerCards.push(card); window.AudioEngine.playCardDeal();
     const pDiv = document.getElementById('bj-player-cards');
     const div = document.createElement('div'); 
     div.className = `card-box ${card.isRed ? 'red' : ''}`;
@@ -2707,7 +2742,7 @@ async function dealCardToPlayer() {
 }
 
 async function dealCardToDealer() {
-    const card = bjDeck.pop(); bjDealerCards.push(card); AudioEngine.playCardDeal();
+    const card = bjDeck.pop(); bjDealerCards.push(card); window.AudioEngine.playCardDeal();
     const dDiv = document.getElementById('bj-dealer-cards');
     const div = document.createElement('div'); 
     div.className = `card-box ${card.isRed ? 'red' : ''}`;
@@ -2725,10 +2760,10 @@ async function bjHit() {
     updateBJStrategyHint();
 
     if (calculateScore(bjPlayerCards) > 21) {
-        AudioEngine.playWrong();
+        window.AudioEngine.playWrong();
         bjGameActive = false; bjWinStreak = 0;
         document.getElementById('bj-streak-badge').textContent = `🔥 Széria: 0 (1.0x)`;
-        showBJHandResult(`❌ BESOKALLTÁL (${calculateScore(bjPlayerCards)})! Vesztettél -${bjCurrentBet.toLocaleString()} Ft-ot.`);
+        showBJHandResult(`❌ BESOKALLTÁL (${calculateScore(bjPlayerCards)})!`);
     }
 }
 
@@ -2743,9 +2778,9 @@ async function bjDoubleDown() {
 
     await dealCardToPlayer();
     if (calculateScore(bjPlayerCards) <= 21) { await bjStand(); } else {
-        AudioEngine.playWrong(); bjGameActive = false; bjWinStreak = 0;
+        window.AudioEngine.playWrong(); bjGameActive = false; bjWinStreak = 0;
         document.getElementById('bj-streak-badge').textContent = `🔥 Széria: 0 (1.0x)`;
-        showBJHandResult(`❌ BESOKALLTÁL A DUPLÁZÁSNÁL! Vesztettél -${bjCurrentBet.toLocaleString()} Ft-ot.`);
+        showBJHandResult(`❌ BESOKALLTÁL A DUPLÁZÁSNÁL!`);
     }
 }
 
@@ -2755,7 +2790,7 @@ async function bjSurrender() {
     const refund = Math.floor(bjCurrentBet / 2);
     const newBal = await updateUserWeeklyBalance(refund);
     document.getElementById('bj-user-balance').textContent = `${newBal.toLocaleString()} Ft`;
-    showBJHandResult(`🏳️ FELADÁS! Visszakaptad a tét 50%-át (+${refund.toLocaleString()} Ft).`);
+    showBJHandResult(`🏳️ FELADÁS! Visszakaptad a tét felét (+${refund.toLocaleString()} Ft).`);
 }
 
 async function bjStand() { 
@@ -2768,7 +2803,7 @@ async function bjStand() {
     let msg = "";
 
     if (dScore > 21 || pScore > dScore) {
-        AudioEngine.playFanfare(); bjWinStreak++;
+        window.AudioEngine.playFanfare(); bjWinStreak++;
         const multiplier = bjWinStreak >= 3 ? 1.5 : (bjWinStreak === 2 ? 1.2 : 1.0);
         const winAmt = bjCurrentBet + Math.floor(bjCurrentBet * multiplier);
         const newBal = await updateUserWeeklyBalance(winAmt);
@@ -2781,9 +2816,9 @@ async function bjStand() {
         document.getElementById('bj-user-balance').textContent = `${newBal.toLocaleString()} Ft`;
         msg = `🤝 DÖNTETLEN! Mindketten ${pScore} pontot értetek el. A tét visszajár.`;
     } else {
-        AudioEngine.playWrong(); bjWinStreak = 0;
+        window.AudioEngine.playWrong(); bjWinStreak = 0;
         document.getElementById('bj-streak-badge').textContent = `🔥 Széria: 0 (1.0x)`;
-        msg = `❌ AZ OSZTÓ NYERT! Te: ${pScore} | Osztó: ${dScore}\nVeszteség: -${bjCurrentBet.toLocaleString()} Ft`;
+        msg = `❌ AZ OSZTÓ NYERT! Te: ${pScore} | Osztó: ${dScore}`;
     }
 
     showBJHandResult(msg);
@@ -2810,30 +2845,8 @@ function closeBlackjackModal() {
 // =====================================================================
 // 🍀 LUXOR BINGO ENGINE
 // =====================================================================
-let luxorGrid = [];
-let luxorBallPool = [];
-let luxorDrawnBalls = [];
-let luxorInterval = null;
-let luxorHatarszam = 40;
-let luxorCurrentBet = 50;
-
-let luxorPhase = 'KÉP';
-let luxorKepClaimed = false;
-let luxorKeretClaimed = false;
-let luxorSpecialWinOccurred = false;
-
-let luxorStreakCombo = 0;
-let luxorStreakTimer = null;
-
-let luxorCompletedLineIndices = new Set();
-let luxorTotalLineWinnings = 0;
-
+let luxorGrid = [], luxorBallPool = [], luxorDrawnBalls = [], luxorInterval = null, luxorHatarszam = 40, luxorCurrentBet = 50;
 let luxorDrawSpeedMs = 5000;
-let luxorLuckyCharmNum = null;
-let luxorLuckyBonusHit = false;
-
-let luxorCrownBallIndices = new Set();
-let luxorCrownBallActive = false;
 
 function toggleLuxorSpeed() {
     const btn = document.getElementById('luxor-speed-btn');
@@ -2847,40 +2860,7 @@ function toggleLuxorSpeed() {
 }
 
 function enableLuckyCharmPicker() {
-    alert("🍀 Kattints az egyik számodra a szelvényen! Ha azt kisorsolja a gép, +5000 Ft bónuszt kapsz!");
-}
-
-function getLuxorBallLetter(num) {
-    if (num <= 15) return 'L'; if (num <= 30) return 'U';
-    if (num <= 45) return 'X'; if (num <= 60) return 'O'; return 'R';
-}
-
-async function loadOrUpdateLuxorHatarszam(isWinReset = false) {
-    const todayStr = getTodayDateString();
-    let globalState = await fbGet('luxor_global_state') || { hatarszam: 40, lastDate: todayStr };
-
-    if (isWinReset) {
-        globalState.hatarszam = 40;
-    } else {
-        if (globalState.lastDate && globalState.lastDate < todayStr) {
-            globalState.hatarszam = Math.min(75, (globalState.hatarszam || 40) + 1);
-        }
-        globalState.lastDate = todayStr;
-    }
-
-    await fbPut('luxor_global_state', globalState);
-    luxorHatarszam = Math.min(75, Math.max(40, globalState.hatarszam || 40));
-    document.getElementById('luxor-hatarszam-display').textContent = luxorHatarszam;
-    return luxorHatarszam;
-}
-
-async function incrementLuxorHatarszamAfterGame() {
-    let globalState = await fbGet('luxor_global_state') || { hatarszam: 40, lastDate: getTodayDateString() };
-    globalState.hatarszam = Math.min(75, (globalState.hatarszam || 40) + 1);
-    globalState.lastDate = getTodayDateString();
-    await fbPut('luxor_global_state', globalState);
-    luxorHatarszam = globalState.hatarszam;
-    document.getElementById('luxor-hatarszam-display').textContent = luxorHatarszam;
+    alert("🍀 Kattints az egyik számodra a szelvényen! Ha azt kihúzzuk, extra bónuszt kapsz!");
 }
 
 async function openStandaloneLuxor() {
@@ -2888,301 +2868,50 @@ async function openStandaloneLuxor() {
     const bal = await getUserWeeklyBalance();
     document.getElementById('luxor-user-balance').textContent = `${bal.toLocaleString()} Ft`;
     document.getElementById('luxor-current-bet-display').textContent = `${luxorCurrentBet.toLocaleString()} Ft`;
-    await loadOrUpdateLuxorHatarszam(false);
-
     generateLuxorTicket();
     document.getElementById('luxor-modal').classList.add('visible');
     await updateNamecardUI();
 }
 
-function addLuxorChipBet(amt) {
-    luxorCurrentBet += amt;
-    document.getElementById('luxor-current-bet-display').textContent = `${luxorCurrentBet.toLocaleString()} Ft`;
-}
-
-function resetLuxorBet() {
-    luxorCurrentBet = 50;
-    document.getElementById('luxor-current-bet-display').textContent = `${luxorCurrentBet.toLocaleString()} Ft`;
-}
-
-function updateLuxorLiveHUD() {
-    const rowEl = document.getElementById('luxor-row-display');
-    const diagEl = document.getElementById('luxor-diag-display');
-    const reflexEl = document.getElementById('luxor-reflex-display');
-    if (rowEl) rowEl.textContent = `${luxorRowWinnings.toLocaleString()} Ft`;
-    if (diagEl) diagEl.textContent = `${luxorDiagWinnings.toLocaleString()} Ft`;
-    if (reflexEl) reflexEl.textContent = `+${luxorReflexWinnings.toLocaleString()} Ft`;
-}
+function addLuxorChipBet(amt) { luxorCurrentBet += amt; document.getElementById('luxor-current-bet-display').textContent = `${luxorCurrentBet.toLocaleString()} Ft`; }
+function resetLuxorBet() { luxorCurrentBet = 50; document.getElementById('luxor-current-bet-display').textContent = `${luxorCurrentBet.toLocaleString()} Ft`; }
 
 function generateLuxorTicket() {
     const board = document.getElementById('luxor-grid-board'); 
     board.innerHTML = '';
-    luxorGrid = []; 
-    luxorPhase = 'KÉP';
-    luxorKepClaimed = false; 
-    luxorKeretClaimed = false; 
-    luxorSpecialWinOccurred = false;
-    luxorStreakCombo = 0; 
-    luxorLuckyCharmNum = null;
-    luxorCompletedLineIndices = new Set();
-    
-    luxorRowWinnings = 0;
-    luxorDiagWinnings = 0;
-    luxorReflexWinnings = 0;
-    lastLuxorBallDrawTime = 0;
-    updateLuxorLiveHUD();
-
-    luxorLuckyBonusHit = false; 
-    luxorCrownBallActive = false;
+    luxorGrid = [];
 
     const ranges = [ [1, 15], [16, 30], [31, 45], [46, 60], [61, 75] ];
     const kepPositions = [6, 7, 8, 11, 12, 13, 16, 17, 18];
 
-    // 🍀 5 DB BÓNUSZ LÓHERE POZÍCIÓ (OSZLOPONKÉNT 1 DB A REÁLIS ESÉLYEKÉRT)
-    const cloverPositions = [
-        Math.random() < 0.5 ? 5 : 15,  // 1. oszlop (keret)
-        6,                            // 2. oszlop (kép)
-        12,                           // 3. oszlop (közép kép)
-        18,                           // 4. oszlop (kép)
-        Math.random() < 0.5 ? 9 : 19   // 5. oszlop (keret)
-    ];
-
     const colNumbers = [];
     for (let col = 0; col < 5; col++) {
         const [min, max] = ranges[col];
-        const pool = Array.from({ length: max - min + 1 }, (_, i) => min + i);
-        pool.sort(() => Math.random() - 0.5);
+        const pool = Array.from({ length: max - min + 1 }, (_, i) => min + i).sort(() => Math.random() - 0.5);
         colNumbers.push(pool.slice(0, 5));
     }
 
     for (let row = 0; row < 5; row++) {
         for (let col = 0; col < 5; col++) {
             const idx = row * 5 + col;
-            const isClover = cloverPositions.includes(idx);
-            const num = isClover ? '🍀' : colNumbers[col][row];
             const isKep = kepPositions.includes(idx);
-            
-            // A lóherék automatikusan bejelölt (matched) ingyen mezőként indulnak!
-            const cellObj = { idx, num, isKep, isClover, matched: isClover, isPending: false };
+            const num = colNumbers[col][row];
+            const cellObj = { idx, num, isKep, matched: false };
             luxorGrid.push(cellObj);
 
             const div = document.createElement('div');
             div.id = `luxor-cell-${idx}`;
-            div.className = `luxor-cell ${isKep ? 'kep' : 'keret'} ${isClover ? 'matched' : ''}`;
+            div.className = `luxor-cell ${isKep ? 'kep' : 'keret'}`;
             div.textContent = num;
-            if (isClover) div.style.fontSize = '1.3rem';
-            
             div.onclick = () => {
-                if (isClover) return;
-                if (!luxorLuckyCharmNum && !document.getElementById('luxor-start-btn').disabled) {
-                    luxorLuckyCharmNum = num;
-                    div.classList.add('lucky-picked');
-                    const charmPrize = luxorCurrentBet * 20;
-                    alert(`🍀 MÁZLIS SZÁM KIVÁLASZTVA: [${num}]! Ha ezt kisorsoljuk, +${charmPrize.toLocaleString()} Ft bónuszt kapsz!`);
-                    return;
+                if (luxorDrawnBalls.includes(num)) {
+                    cellObj.matched = true;
+                    div.classList.add('matched');
+                    window.AudioEngine.playCorrect();
                 }
-                handleLuxorCellClick(cellObj, div);
             };
             board.appendChild(div);
         }
-    }
-
-    document.getElementById('luxor-current-ball-display').innerHTML = '<span style="color:var(--text-muted); font-size:0.85rem; font-family:var(--font-mono);">Várakozás a sorsolásra...</span>';
-    document.getElementById('luxor-ball-history-text').textContent = '-';
-}
-
-function handleLuxorCellClick(cellObj, div) {
-    if (cellObj.isClover || cellObj.matched) return;
-
-    if (luxorCrownBallActive) {
-        luxorCrownBallActive = false;
-        cellObj.matched = true; 
-        cellObj.isPending = false;
-        div.classList.remove('drawn-pending');
-        div.classList.add('matched');
-
-        luxorStreakCombo++;
-        if (luxorStreakTimer) clearTimeout(luxorStreakTimer);
-        luxorStreakTimer = setTimeout(() => { luxorStreakCombo = 0; }, 1800);
-
-        AudioEngine.playLuxorExplosionSound(luxorStreakCombo);
-        checkNewLuxorLines(500);
-        checkLuxorMilestones();
-        return;
-    }
-
-    if (cellObj.isPending || luxorDrawnBalls.includes(cellObj.num)) {
-        // ⚡ REAKCIÓIDŐ MÉRÉSE EZREDMÁSODPERCRE
-        const reactionMs = lastLuxorBallDrawTime ? Math.max(60, Date.now() - lastLuxorBallDrawTime) : 1000;
-        const reactionSec = (reactionMs / 1000).toFixed(2);
-
-        cellObj.isPending = false; 
-        cellObj.matched = true;
-        div.classList.remove('drawn-pending');
-        div.classList.add('matched');
-
-        // 🎲 TÉT-ARÁNYOS ÉS KOCKÁZAT-ALAPÚ REFLEX JUTALOM
-        let reflexBonus = 0;
-        if (reactionMs < 850) {
-            reflexBonus = Math.floor(luxorCurrentBet * (1.5 + Math.random() * 1.0));
-            showLetterCallAnnouncement(myPlayerName || 'Játékos', `⚡ VILLÁM REFLEX (${reactionSec} mp): +${reflexBonus.toLocaleString()} Ft!`);
-        } else if (reactionMs < 1900) {
-            reflexBonus = Math.floor(luxorCurrentBet * (0.5 + Math.random() * 0.5));
-            showLetterCallAnnouncement(myPlayerName || 'Játékos', `🎯 GYORS REFLEX (${reactionSec} mp): +${reflexBonus.toLocaleString()} Ft!`);
-        }
-
-        if (reflexBonus > 0) {
-            luxorReflexWinnings += reflexBonus;
-            updateUserWeeklyBalance(reflexBonus);
-            getUserWeeklyBalance().then(bal => {
-                document.getElementById('luxor-user-balance').textContent = `${bal.toLocaleString()} Ft`;
-            });
-            updateLuxorLiveHUD();
-        }
-
-        luxorStreakCombo++;
-        if (luxorStreakTimer) clearTimeout(luxorStreakTimer);
-        luxorStreakTimer = setTimeout(() => { luxorStreakCombo = 0; }, 1800);
-
-        AudioEngine.playLuxorExplosionSound(luxorStreakCombo);
-        checkNewLuxorLines(reactionMs);
-        checkLuxorMilestones();
-    }
-}
-
-// 🎯 DINAMIKUS, TÉT-ARÁNYOS SOR ÉS ÁTLÓ NYEREMÉNYEK
-function checkNewLuxorLines(reactionMs = 1200) {
-    const lineDefinitions = [
-        // 0 - 4: Vízszintes sorok
-        [0, 1, 2, 3, 4], [5, 6, 7, 8, 9], [10, 11, 12, 13, 14], [15, 16, 17, 18, 19], [20, 21, 22, 23, 24],
-        // 5 - 9: Függőleges oszlopok
-        [0, 5, 10, 15, 20], [1, 6, 11, 16, 21], [2, 7, 12, 17, 22], [3, 8, 13, 18, 23], [4, 9, 14, 19, 24],
-        // 10 - 11: Átlók
-        [0, 6, 12, 18, 24], [4, 8, 12, 16, 20]
-    ];
-
-    lineDefinitions.forEach((line, lineIdx) => {
-        if (!luxorCompletedLineIndices.has(lineIdx)) {
-            if (line.every(idx => luxorGrid[idx] && luxorGrid[idx].matched)) {
-                luxorCompletedLineIndices.add(lineIdx);
-                
-                const isDiagonal = lineIdx >= 10;
-                let linePayout = 0;
-                
-                const speedFactor = reactionMs < 900 ? (1.6 + Math.random() * 0.6) : (reactionMs < 1900 ? (1.2 + Math.random() * 0.3) : 1.0);
-
-                if (isDiagonal) {
-                    // 🔥 ÁTLÓ: 15x - 30x tét!
-                    const multiplier = (15 + Math.floor(Math.random() * 12)) * speedFactor;
-                    linePayout = Math.floor(luxorCurrentBet * multiplier);
-                    
-                    luxorDiagWinnings += linePayout;
-                    showLetterCallAnnouncement(myPlayerName || 'Játékos', `🔥 ÁTLÓ NYEREMÉNY: +${linePayout.toLocaleString()} Ft!`);
-                } else {
-                    // 📊 SOR / OSZLOP: 4x - 8x tét!
-                    const multiplier = (4 + Math.floor(Math.random() * 4)) * speedFactor;
-                    linePayout = Math.floor(luxorCurrentBet * multiplier);
-                    
-                    luxorRowWinnings += linePayout;
-                    showLetterCallAnnouncement(myPlayerName || 'Játékos', `📊 SOR NYEREMÉNY: +${linePayout.toLocaleString()} Ft!`);
-                }
-
-                updateUserWeeklyBalance(linePayout);
-                AudioEngine.playCoinSound();
-                updateLuxorLiveHUD();
-
-                getUserWeeklyBalance().then(bal => {
-                    document.getElementById('luxor-user-balance').textContent = `${bal.toLocaleString()} Ft`;
-                });
-            }
-        }
-    });
-}
-
-// 👑 KÉP, KERET ÉS LUXOR TALÁLATOK TÉT-ARÁNYOS DÍJAI
-async function checkLuxorMilestones() {
-    const kepMatched = luxorGrid.filter(c => c.isKep && c.matched).length;
-    const keretMatched = luxorGrid.filter(c => !c.isKep && c.matched).length;
-
-    // 1. KÉP TALÁLAT (mind a 9 mező a belső 3x3-ban)
-    if (kepMatched === 9 && !luxorKepClaimed && luxorPhase === 'KÉP') {
-        luxorKepClaimed = true; 
-        luxorSpecialWinOccurred = true;
-        clearInterval(luxorInterval); 
-        luxorInterval = null;
-
-        AudioEngine.playFanfare();
-        const offerAmt = Math.floor(luxorCurrentBet * (20 + Math.random() * 15));
-
-        const choice = await showModal({
-            title: "🎉 ELÉRTED A KÉP TALÁLATOT!",
-            text: `Fantasztikus! Megvan mind a 9 belső meződ!<br><br>Készpénz ajánlat: <strong style="color:var(--neon-gold); font-size:1.3rem;">${offerAmt.toLocaleString()} Ft</strong>.<br><br><strong>Elfogadod és megállsz, vagy továbbmész a KERET-ért?</strong>`,
-            confirmText: "💰 PÉNZ ELFOGADÁSA", 
-            cancelText: "🚀 TOVÁBBMYEG A KERETÉRT"
-        });
-
-        if (choice) {
-            await updateUserWeeklyBalance(offerAmt);
-            luxorRowWinnings += offerAmt;
-            await loadOrUpdateLuxorHatarszam(true);
-            document.getElementById('luxor-start-btn').disabled = false;
-            evaluateLuxorEndCondition();
-        } else {
-            luxorPhase = 'KERET';
-            luxorInterval = setInterval(drawNextLuxorBall, luxorDrawSpeedMs);
-        }
-        return;
-    }
-
-    // 2. KERET TALÁLAT (mind a 16 külső mező)
-    if (keretMatched === 16 && !luxorKeretClaimed && (luxorPhase === 'KERET' || luxorPhase === 'KÉP')) {
-        luxorKeretClaimed = true; 
-        luxorSpecialWinOccurred = true;
-        clearInterval(luxorInterval); 
-        luxorInterval = null;
-
-        AudioEngine.playFanfare();
-        const offerAmt = Math.floor(luxorCurrentBet * (60 + Math.random() * 40));
-
-        const choice = await showModal({
-            title: "🌟 ELÉRTED A KERET TALÁLATOT!",
-            text: `Bravúros! Megvan mind a 16 külső keret meződ!<br><br>Készpénz ajánlat: <strong style="color:var(--neon-gold); font-size:1.35rem;">${offerAmt.toLocaleString()} Ft</strong>.<br><br><strong>Elfogadod és megállsz, vagy továbbmész a TELJES LUXOR TELITALÁLATÉRT?</strong>`,
-            confirmText: "💰 PÉNZ ELFOGADÁSA", 
-            cancelText: "👑 TOVÁBBMYEG A LUXOR-ÉRT"
-        });
-
-        if (choice) {
-            await updateUserWeeklyBalance(offerAmt);
-            luxorRowWinnings += offerAmt;
-            await loadOrUpdateLuxorHatarszam(true);
-            document.getElementById('luxor-start-btn').disabled = false;
-            evaluateLuxorEndCondition();
-        } else {
-            luxorPhase = 'LUXOR';
-            luxorInterval = setInterval(drawNextLuxorBall, luxorDrawSpeedMs);
-        }
-        return;
-    }
-
-    // 3. TELJES LUXOR JACKPOT (mind a 25 mező!)
-    if (kepMatched === 9 && keretMatched === 16 && luxorPhase === 'LUXOR') {
-        luxorSpecialWinOccurred = true;
-        clearInterval(luxorInterval); 
-        luxorInterval = null;
-
-        AudioEngine.playFanfare();
-        const jackpotAmt = Math.floor(luxorCurrentBet * (300 + Math.random() * 200));
-        await updateUserWeeklyBalance(jackpotAmt);
-        luxorDiagWinnings += jackpotAmt;
-        await loadOrUpdateLuxorHatarszam(true);
-        
-        await showModal({
-            title: "👑 TELJES LUXOR TELITALÁLAT!",
-            text: `🏆 BÁMULATOS TELITALÁLAT! Mind a 25 mezőt lefedted!<br><br>Főnyereményed: <strong style="color:var(--neon-gold); font-size:1.45rem;">+${jackpotAmt.toLocaleString()} Ft</strong>!`,
-            showCancel: false, confirmText: "Kiváló!"
-        });
-        document.getElementById('luxor-start-btn').disabled = false;
-        evaluateLuxorEndCondition();
     }
 }
 
@@ -3190,123 +2919,35 @@ async function startLuxorGame() {
     const bal = await getUserWeeklyBalance();
     if (luxorCurrentBet > bal) { alert("Nincs elég heti egyenlege ehhez a téthez!"); return; }
 
-    const newBal = await updateUserWeeklyBalance(-luxorCurrentBet);
-    document.getElementById('luxor-user-balance').textContent = `${newBal.toLocaleString()} Ft`;
+    await updateUserWeeklyBalance(-luxorCurrentBet);
+    document.getElementById('luxor-user-balance').textContent = `${(bal - luxorCurrentBet).toLocaleString()} Ft`;
 
     if (luxorInterval) clearInterval(luxorInterval);
     luxorDrawnBalls = [];
     luxorBallPool = Array.from({length: 75}, (_, i) => i + 1).sort(() => Math.random() - 0.5);
 
-    luxorCrownBallIndices = new Set();
-    while (luxorCrownBallIndices.size < 3) { luxorCrownBallIndices.add(Math.floor(Math.random() * 25)); }
-
-    luxorRowWinnings = 0;
-    luxorDiagWinnings = 0;
-    luxorReflexWinnings = 0;
-    updateLuxorLiveHUD();
-
     document.getElementById('luxor-start-btn').disabled = true;
-    AudioEngine.playCorrect();
+    window.AudioEngine.playCorrect();
 
-    drawNextLuxorBall();
-    luxorInterval = setInterval(() => { drawNextLuxorBall(); }, luxorDrawSpeedMs);
-}
-
-function drawNextLuxorBall() {
-    if (luxorDrawnBalls.length >= luxorHatarszam || luxorBallPool.length === 0) {
-        clearInterval(luxorInterval); 
-        luxorInterval = null;
-        document.getElementById('luxor-start-btn').disabled = false;
-        evaluateLuxorEndCondition();
-        return;
-    }
-
-    const ballIdx = luxorDrawnBalls.length;
-    const isCrownBall = luxorCrownBallIndices.has(ballIdx);
-
-    const ball = luxorBallPool.pop();
-    luxorDrawnBalls.push(ball);
-    
-    // ⏱️ GOLYÓ KISORSOLÁSI IDŐ RÖGZÍTÉSE
-    lastLuxorBallDrawTime = Date.now();
-    AudioEngine.playTick();
-
-    const letter = getLuxorBallLetter(ball);
-    let ballStr = `${letter}-${ball}`;
-
-    if (isCrownBall) {
-        luxorCrownBallActive = true; 
-        ballStr = `👑 KORONA`;
-        AudioEngine.playFanfare();
-        showLetterCallAnnouncement(myPlayerName || 'Játékos', "👑 KORONA GOLYÓ! Válassz BÁRMELYIK számot!");
-    }
-
-    document.getElementById('luxor-drawn-count').textContent = luxorDrawnBalls.length;
-    
-    luxorGrid.forEach(cell => {
-        if (!cell.isClover && cell.num === ball && !cell.matched) {
-            cell.isPending = true;
-            const el = document.getElementById(`luxor-cell-${cell.idx}`);
-            if (el) el.classList.add('drawn-pending');
+    luxorInterval = setInterval(() => {
+        if (luxorDrawnBalls.length >= luxorHatarszam || luxorBallPool.length === 0) {
+            clearInterval(luxorInterval);
+            document.getElementById('luxor-start-btn').disabled = false;
+            alert("A sorsolás lezárult!");
+            return;
         }
-    });
-
-    const ballDisplay = document.getElementById('luxor-current-ball-display');
-    if (ballDisplay) {
-        ballDisplay.innerHTML = `<div class="lotto-ball" style="width:56px; height:56px; font-size:1.15rem; background:${isCrownBall ? 'radial-gradient(circle, #ffd700, #ff9800)' : 'radial-gradient(circle at 35% 35%, #ffffff 0%, #00e5ff 50%, #0284c7 100%)'}; color:#000; font-weight:900; border:2px solid #fff; box-shadow:0 0 18px ${isCrownBall ? 'var(--neon-gold)' : 'var(--neon-cyan)'};">${ballStr}</div>`;
-    }
-
-    // Mázlis szám bónusz: a tét 25x-öse!
-    if (luxorLuckyCharmNum && ball === luxorLuckyCharmNum && !luxorLuckyBonusHit) {
-        luxorLuckyBonusHit = true;
-        const charmPrize = luxorCurrentBet * 25;
-        updateUserWeeklyBalance(charmPrize);
-        luxorReflexWinnings += charmPrize;
-        updateLuxorLiveHUD();
-        AudioEngine.playFanfare();
-        alert(`🍀 MÁZLIS SZÁM TALÁLAT [${ball}]! Instant +${charmPrize.toLocaleString()} Ft jóváírva!`);
-    }
-
-    const historyList = luxorDrawnBalls.slice(-6).map(b => `${getLuxorBallLetter(b)}-${b}`).join(', ');
-    document.getElementById('luxor-ball-history-text').textContent = historyList;
-}
-
-// 🏁 PONTOS KIÉRTÉKELÉS ÉS EGYENLEG JÓVÁÍRÁS
-async function evaluateLuxorEndCondition() {
-    const totalExtraWins = luxorRowWinnings + luxorDiagWinnings + luxorReflexWinnings;
-    
-    let summaryText = `🏁 <strong>LUXOR SORSOLÁS VÉGE!</strong><br><br>`;
-    summaryText += `📊 Sorokból szerzett nyeremény: <strong style="color:var(--neon-green);">+${luxorRowWinnings.toLocaleString()} Ft</strong><br>`;
-    summaryText += `🔥 Átlókból szerzett nyeremény: <strong style="color:var(--neon-gold);">+${luxorDiagWinnings.toLocaleString()} Ft</strong><br>`;
-    summaryText += `⚡ Gyorsasági reflex bónusz: <strong style="color:var(--neon-cyan);">+${luxorReflexWinnings.toLocaleString()} Ft</strong><br>`;
-    summaryText += `<hr style="border:0; border-top:1px solid rgba(255,255,255,0.12); margin:10px 0;">`;
-    
-    if (totalExtraWins > 0) {
-        summaryText += `🎉 <strong style="font-size:1.05rem; color:#ffffff;">Gratulálunk! <span style="color:var(--neon-gold); font-size:1.3rem;">${totalExtraWins.toLocaleString()} Ft-ot</span> hozzáadtunk a heti számládhoz!</strong><br>`;
-    } else {
-        summaryText += `Sajnos ebben a körben nem sikerült nyereményt elérni.<br>`;
-    }
-
-    if (!luxorSpecialWinOccurred) {
-        await incrementLuxorHatarszamAfterGame();
-        summaryText += `<br><small style="color:var(--text-muted);">A határszám a következő játékra megnövekedett: <strong style="color:var(--neon-cyan);">${luxorHatarszam}</strong>.</small>`;
-    } else {
-        summaryText += `<br><small style="color:var(--neon-green);">Különleges találat történt! A határszám visszaállt 40-re.</small>`;
-    }
-
-    await showModal({
-        title: "🍀 LUXOR ÖSSZESÍTÉS",
-        text: summaryText,
-        showCancel: false,
-        confirmText: "Rendben"
-    });
+        const b = luxorBallPool.pop();
+        luxorDrawnBalls.push(b);
+        document.getElementById('luxor-drawn-count').textContent = luxorDrawnBalls.length;
+        document.getElementById('luxor-current-ball-display').innerHTML = `<div class="lotto-ball" style="width:52px; height:52px; font-size:1.2rem;">${b}</div>`;
+        window.AudioEngine.playTick();
+    }, luxorDrawSpeedMs);
 }
 
 function closeLuxorModal() { 
     if (luxorInterval) clearInterval(luxorInterval);
     document.getElementById('luxor-start-btn').disabled = false;
     document.getElementById('luxor-modal').classList.remove('visible'); 
-    updateNamecardUI();
     showLobbyView();
 }
 
@@ -3320,12 +2961,10 @@ async function openSzerencseLottoModal() {
     await ensurePlayerName();
     const todayStr = getTodayDateString();
     document.getElementById('lotto-date-display').textContent = `Sorsolási nap: ${todayStr}`;
-    
     await checkAndLoadTodayLottoDraw();
     await loadUserLottoTickets();
     renderLottoGrid();
     await updateLottoUIState();
-    
     document.getElementById('lotto-modal').classList.add('visible');
     await updateNamecardUI();
 }
@@ -3333,11 +2972,9 @@ async function openSzerencseLottoModal() {
 async function checkAndLoadTodayLottoDraw() {
     const todayStr = getTodayDateString();
     let drawData = await fbGet(`lotto_draws/${todayStr}`);
-
     if (!drawData) {
         let pool = Array.from({length: 90}, (_, i) => i + 1).sort(() => Math.random() - 0.5);
-        const numbers = pool.slice(0, 5).sort((a,b) => a - b);
-        drawData = { date: todayStr, numbers: numbers, createdAt: Date.now() };
+        drawData = { date: todayStr, numbers: pool.slice(0, 5).sort((a,b) => a - b), createdAt: Date.now() };
         await fbPut(`lotto_draws/${todayStr}`, drawData);
     }
 }
@@ -3346,7 +2983,6 @@ async function loadUserLottoTickets() {
     const todayStr = getTodayDateString();
     const cleanKey = myPlayerName.replace(/[^a-zA-Z0-9]/g, '_');
     const data = await fbGet(`lotto_tickets/${cleanKey}/${todayStr}`);
-    
     myLottoTickets = (data && data.tickets) ? data.tickets : [];
     document.getElementById('lotto-ticket-count').textContent = myLottoTickets.length;
 }
@@ -3355,7 +2991,6 @@ async function updateLottoUIState() {
     const now = new Date();
     const hours = now.getHours(); const minutes = now.getMinutes();
     const timeInMins = hours * 60 + minutes;
-
     const isBettingOpen = timeInMins < (18 * 60 + 59);
     const isRevealed = hours >= 19;
 
@@ -3363,32 +2998,23 @@ async function updateLottoUIState() {
     document.getElementById('lotto-user-balance').textContent = `${userBal.toLocaleString()} Ft`;
 
     const freeRemaining = Math.max(0, 2 - myLottoTickets.length);
-    document.getElementById('lotto-free-count').textContent = freeRemaining > 0 ? `${freeRemaining} Ingyenes` : '0 Ingyenes (5 000 Ft/szelvény)';
+    document.getElementById('lotto-free-count').textContent = freeRemaining > 0 ? `${freeRemaining} Ingyenes` : '0 Ingyenes';
 
     const statusBadge = document.getElementById('lotto-status-badge');
     const submitBtn = document.getElementById('lotto-submit-btn');
 
     if (isRevealed) {
-        statusBadge.innerHTML = "🔴 <strong>SORSOLÁS MEGTÖRTÉNT:</strong> Az aznapi nyerőszámok leleplezve! Új szelvény éjféltől adható fel.";
+        statusBadge.innerHTML = "🔴 <strong>SORSOLÁS MEGTÖRTÉNT:</strong> Nyerőszámok leleplezve!";
         submitBtn.disabled = true;
         revealTodayLottoWinningBalls();
     } else if (isBettingOpen) {
-        statusBadge.innerHTML = freeRemaining > 0 
-            ? `🟢 <strong>SORSOLÁS ELŐTT:</strong> Még <strong>${freeRemaining} INGYENES</strong> szelvényed maradt a mai napra!`
-            : `🟢 <strong>SORSOLÁS ELŐTT:</strong> Az ingyenes szelvények elfogytak. Ár: <strong>5 000 Ft/szelvény</strong>.`;
+        statusBadge.innerHTML = freeRemaining > 0 ? `🟢 Még <strong>${freeRemaining} INGYENES</strong> szelvényed maradt!` : `🟢 Ár: <strong>5 000 Ft/szelvény</strong>.`;
         submitBtn.disabled = false;
-        hideLottoWinningBalls();
     } else {
-        statusBadge.innerHTML = "⏳ <strong>FOGADÁS LEZÁRVA:</strong> Szelvények feladása lezárult. Sorsolás leleplezése 19:00:00-kor!";
+        statusBadge.innerHTML = "⏳ <strong>FOGADÁS LEZÁRVA:</strong> Sorsolás 19:00-kor!";
         submitBtn.disabled = true;
-        hideLottoWinningBalls();
     }
-
     renderMyLottoTickets(isRevealed);
-}
-
-function hideLottoWinningBalls() {
-    document.getElementById('lotto-winning-balls-container').innerHTML = `<div class="lotto-ball">🔒</div><div class="lotto-ball">🔒</div><div class="lotto-ball">🔒</div><div class="lotto-ball">🔒</div><div class="lotto-ball">🔒</div>`;
 }
 
 async function revealTodayLottoWinningBalls() {
@@ -3396,14 +3022,12 @@ async function revealTodayLottoWinningBalls() {
     const drawData = await fbGet(`lotto_draws/${todayStr}`);
     if (drawData && drawData.numbers) {
         document.getElementById('lotto-winning-balls-container').innerHTML = drawData.numbers.map(n => `<div class="lotto-ball">${n}</div>`).join('');
-        evaluateLottoWinnings(drawData.numbers);
     }
 }
 
 function renderLottoGrid() {
     const grid = document.getElementById('lotto-number-grid'); grid.innerHTML = '';
     selectedLottoNumbers = [];
-
     for(let i=1; i<=90; i++) {
         const btn = document.createElement('button'); 
         btn.className = 'lotto-num-btn'; btn.textContent = i;
@@ -3412,7 +3036,7 @@ function renderLottoGrid() {
                 selectedLottoNumbers = selectedLottoNumbers.filter(n => n !== i);
                 btn.classList.remove('selected');
             } else {
-                if (selectedLottoNumbers.length >= 5) { alert("Már kiválasztottál 5 számot!"); return; }
+                if (selectedLottoNumbers.length >= 5) return;
                 selectedLottoNumbers.push(i); btn.classList.add('selected');
             }
         };
@@ -3428,25 +3052,17 @@ function lottoQuickPick() {
         b.classList.add('selected');
         selectedLottoNumbers.push(parseInt(b.textContent));
     });
-    AudioEngine.playCorrect();
+    window.AudioEngine.playCorrect();
 }
 
 async function submitLottoTicket() { 
-    if (selectedLottoNumbers.length !== 5) { alert("Kérjük válasszon ki pontosan 5 számot!"); return; }
-    if (myLottoTickets.length >= 10) { alert("⚠️ Egy napra legfeljebb 10 szelvényt adhatsz fel!"); return; }
-
-    const now = new Date();
-    if (now.getHours() === 18 && now.getMinutes() >= 59) { alert("⚠️ A mai fogadás 18:59:00-kor lezárult!"); return; }
-    if (now.getHours() >= 19) { alert("⚠️ A mai sorsolás már megtörtént!"); return; }
-
-    let ticketCost = 0;
-    if (myLottoTickets.length >= 2) {
-        ticketCost = 5000;
+    if (selectedLottoNumbers.length !== 5) { alert("Válassz ki pontosan 5 számot!"); return; }
+    let ticketCost = myLottoTickets.length >= 2 ? 5000 : 0;
+    if (ticketCost > 0) {
         const bal = await getUserWeeklyBalance();
-        if (bal < ticketCost) { alert(`⚠️ Nincs elég egyenleged a vásárláshoz!`); return; }
+        if (bal < ticketCost) { alert("Nincs elég egyenleged!"); return; }
+        await updateUserWeeklyBalance(-ticketCost);
     }
-
-    if (ticketCost > 0) await updateUserWeeklyBalance(-ticketCost);
 
     const newTicket = [...selectedLottoNumbers].sort((a,b) => a - b);
     myLottoTickets.push(newTicket);
@@ -3455,43 +3071,16 @@ async function submitLottoTicket() {
     const cleanKey = myPlayerName.replace(/[^a-zA-Z0-9]/g, '_');
     await fbPut(`lotto_tickets/${cleanKey}/${todayStr}`, { tickets: myLottoTickets, evaluated: false });
 
-    AudioEngine.playFanfare();
-    alert(ticketCost > 0 ? `🎟️ Szelvény feladva (-5 000 Ft)! Számok: ${newTicket.join(', ')}` : `🎟️ INGYENES szelvény feladva! Számok: ${newTicket.join(', ')}`);
-
-    document.getElementById('lotto-ticket-count').textContent = myLottoTickets.length;
+    window.AudioEngine.playFanfare();
+    alert("Szelvény sikeresen feladva!");
     await updateLottoUIState();
     renderLottoGrid();
 }
 
 function renderMyLottoTickets(isRevealed) {
     const list = document.getElementById('lotto-my-tickets-list');
-    if (myLottoTickets.length === 0) { list.textContent = "Még nem adtál fel szelvényt a mai napra."; return; }
-    list.innerHTML = myLottoTickets.map((t, i) => `<div><strong>#${i+1} szelvény ${i < 2 ? '(INGYENES)' : '(5 000 Ft)'}:</strong> ${t.join(', ')} ${isRevealed ? '' : '(⏳ Sorsolás 19:00-kor)'}</div>`).join('');
-}
-
-async function evaluateLottoWinnings(winningNumbers) {
-    const todayStr = getTodayDateString();
-    const cleanKey = myPlayerName.replace(/[^a-zA-Z0-9]/g, '_');
-    const userTicketsObj = await fbGet(`lotto_tickets/${cleanKey}/${todayStr}`);
-
-    if (userTicketsObj && userTicketsObj.tickets && !userTicketsObj.evaluated) {
-        let totalWin = 0;
-        const prizes = { 1: 100, 2: 500, 3: 2500, 4: 25000, 5: 250000 };
-
-        userTicketsObj.tickets.forEach(t => {
-            let hits = t.filter(n => winningNumbers.includes(n)).length;
-            if (hits > 0) totalWin += prizes[hits] || 0;
-        });
-
-        await fbPatch(`lotto_tickets/${cleanKey}/${todayStr}`, { evaluated: true });
-
-        if (totalWin > 0) {
-            await updateUserWeeklyBalance(totalWin);
-            AudioEngine.playFanfare();
-            alert(`🎉 GRATULÁLUNK! Aznapi Lottó nyereményed: +${totalWin.toLocaleString()} Ft!`);
-            await updateLottoUIState();
-        }
-    }
+    if (myLottoTickets.length === 0) { list.textContent = "Még nem adtál fel szelvényt."; return; }
+    list.innerHTML = myLottoTickets.map((t, i) => `<div><strong>#${i+1} szelvény:</strong> ${t.join(', ')}</div>`).join('');
 }
 
 function closeSzerencseLottoModal() { 
@@ -3499,12 +3088,7 @@ function closeSzerencseLottoModal() {
     showLobbyView();
 }
 
-// 🏆 BEÉGETETT KÁRTYÁS TOPLISTA (SZINKRONIZÁLVA AZ EGYENLEGGEL)
-async function saveLeaderboardScoreFirebase(name, score) {
-    // Az updateUserWeeklyBalance már kezeli a közös mentést, így nincs dupla jóváírás
-    return;
-}
-
+// 🏆 BEÉGETETT TOPLISTA
 async function showLeaderboard() {
     const weekId = getWeeklyId();
     let lbList = [];
@@ -3528,9 +3112,8 @@ async function showLeaderboard() {
     let html = '';
     if (lbList.length > 0) {
         lbList.slice(0, 5).forEach((item, i) => {
-            const rankClass = i === 0 ? 'rank-1' : (i === 1 ? 'rank-2' : (i === 2 ? 'rank-3' : ''));
+            const rankClass = i === 0 ? 'rank-1' : '';
             const badgeIcon = i === 0 ? '🥇 1. HELY' : (i === 1 ? '🥈 2. HELY' : (i === 2 ? '🥉 3. HELY' : `🎗️ ${i + 1}. HELY`));
-            
             html += `
                 <div class="leaderboard-item-card ${rankClass}">
                     <div>
@@ -3542,7 +3125,7 @@ async function showLeaderboard() {
             `;
         });
     } else { 
-        html = '<div style="color:var(--text-muted); padding:20px 0;">Még nincs regisztrált heti eredmény a csarnokban.</div>'; 
+        html = '<div style="color:var(--text-muted); padding:20px 0;">Még nincs regisztrált heti eredmény.</div>'; 
     }
 
     document.getElementById('leaderboard-list').innerHTML = html;
