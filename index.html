@@ -499,6 +499,162 @@
             .lobby-btn.full-width { grid-column: span 1; }
             .alphabet-key { min-width: 22px; height: 30px; font-size: 0.72rem; max-width: 30px; }
         }
+
+
+        /* SzerencseBajnok Premium Edition — visual polish + lightweight mode */
+        :root {
+            --bg-dark: #080b14;
+            --bg-card: rgba(17, 24, 42, 0.92);
+            --bg-card-solid: #101727;
+            --border-color: rgba(190, 208, 239, 0.14);
+            --border-glow: rgba(91, 205, 226, 0.42);
+            --neon-gold: #f5cf78;
+            --neon-gold-glow: rgba(245, 207, 120, 0.22);
+            --neon-cyan: #75d8e6;
+            --neon-cyan-glow: rgba(117, 216, 230, 0.2);
+            --neon-violet: #a99aff;
+            --neon-magenta: #e99abd;
+            --neon-green: #63d6a4;
+            --neon-red: #ff788b;
+            --text-main: #f5f7fc;
+            --text-muted: #a5b0c5;
+        }
+        html { color-scheme: dark; }
+        body {
+            padding: clamp(8px, 1.6vw, 18px);
+            background-color: var(--bg-dark);
+            background-image:
+                radial-gradient(ellipse at 12% 0%, rgba(91, 111, 181, .16), transparent 42%),
+                radial-gradient(ellipse at 95% 70%, rgba(42, 151, 169, .12), transparent 40%),
+                linear-gradient(135deg, rgba(255,255,255,.012) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.012) 50%, rgba(255,255,255,.012) 75%, transparent 75%);
+            background-size: auto, auto, 8px 8px;
+        }
+        header { margin-bottom: 10px; gap: 10px; }
+        .brand-top-left {
+            background: linear-gradient(135deg, rgba(21, 31, 52, .96), rgba(12, 18, 32, .96));
+            border-color: rgba(117,216,230,.28);
+            border-radius: 14px;
+            box-shadow: 0 8px 26px rgba(0,0,0,.2), inset 0 1px rgba(255,255,255,.045);
+            backdrop-filter: none;
+        }
+        .brand-top-left:hover { transform: translateY(-1px); box-shadow: 0 10px 30px rgba(0,0,0,.28); }
+        .brand-top-left svg { filter: none; }
+        .brand-top-left-text {
+            background: linear-gradient(110deg, #fff 15%, #f5cf78 88%);
+            -webkit-background-clip: text; background-clip: text;
+        }
+        #top-right-buttons { flex-wrap: wrap; justify-content: flex-end; }
+        .top-btn {
+            background: rgba(20, 28, 46, .9);
+            border-color: rgba(190,208,239,.15);
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,.14);
+            backdrop-filter: none;
+            transition: background-color .16s ease, border-color .16s ease, transform .16s ease;
+        }
+        .top-btn:hover { background: rgba(117,216,230,.14); color: #eafcff; border-color: rgba(117,216,230,.55); box-shadow: none; }
+        .top-btn.mute { background: rgba(255,255,255,.045); }
+        #player-namecard-card, #tv-container, .lobby-card-box, #puzzle-board-wrapper,
+        .player-hud, #host-message, #alphabet-panel, .luxor-ticket-container,
+        .mines-grid-container, .modal-content {
+            backdrop-filter: none;
+            box-shadow: 0 12px 34px rgba(0,0,0,.22), inset 0 1px rgba(255,255,255,.025);
+        }
+        #player-namecard-card {
+            border-color: rgba(117,216,230,.26); border-radius: 14px; padding: 9px 14px;
+            background: linear-gradient(110deg, rgba(18,28,47,.98), rgba(12,18,32,.98));
+        }
+        #puzzle-count-live-badge {
+            border-color: rgba(117,216,230,.18); border-radius: 10px;
+            background: rgba(18, 30, 48, .78); padding: 8px 12px; gap: 8px; flex-wrap: wrap;
+        }
+        #tv-container {
+            background: linear-gradient(145deg, rgba(17,24,42,.98), rgba(9,13,24,.98));
+            border: 1px solid rgba(150,184,220,.17); border-radius: 22px; padding: 12px;
+            box-shadow: 0 22px 55px rgba(0,0,0,.32), inset 0 1px rgba(255,255,255,.04);
+        }
+        #screen {
+            background: linear-gradient(145deg, rgba(9,14,26,.98), rgba(12,18,31,.98));
+            border-color: rgba(190,208,239,.1); border-radius: 16px; padding: clamp(9px, 1.4vw, 16px);
+        }
+        .lobby-card-box {
+            background: linear-gradient(145deg, rgba(20,29,48,.98), rgba(12,18,31,.98));
+            border-color: rgba(117,216,230,.22); border-radius: 20px; padding: clamp(16px, 2.2vw, 24px);
+        }
+        .lobby-section-title { letter-spacing: 1.35px; }
+        .lobby-btn {
+            min-height: 48px; border-radius: 12px; border-color: rgba(190,208,239,.13);
+            background: linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.018));
+            box-shadow: 0 5px 14px rgba(0,0,0,.12); transition: background .16s ease, border-color .16s ease, transform .16s ease;
+        }
+        .lobby-btn:hover { background: linear-gradient(135deg, #f5cf78, #e9b65b); color: #151923; border-color: #f5cf78; transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0,0,0,.2); }
+        .lobby-btn.mines-highlight { background: linear-gradient(120deg, rgba(99,214,164,.13), rgba(117,216,230,.1)); border-color: rgba(99,214,164,.48); box-shadow: none; }
+        #puzzle-category { border-color: rgba(117,216,230,.42); border-radius: 12px; background: linear-gradient(110deg, rgba(117,216,230,.12), rgba(169,154,255,.12)); box-shadow: none; letter-spacing: 1.2px; }
+        #puzzle-board-wrapper { border-color: rgba(117,216,230,.3); border-radius: 16px; background: linear-gradient(145deg, rgba(19,29,48,.9), rgba(9,14,25,.96)); box-shadow: inset 0 1px rgba(255,255,255,.025); }
+        .tile-front { background: linear-gradient(145deg, #202d43, #131d30); border-color: rgba(117,216,230,.55); box-shadow: inset 0 1px rgba(255,255,255,.07); }
+        .tile-front.highlight-glow { background: #f5cf78 !important; box-shadow: 0 0 0 2px rgba(255,255,255,.6) !important; }
+        .tile-back { background: linear-gradient(145deg, #fff9e8, #f5d989); border-color: #f5cf78; box-shadow: none; }
+        #alphabet-panel { background: rgba(4,8,16,.45); border-color: rgba(190,208,239,.1); border-radius: 14px; }
+        .alphabet-key { min-height: 36px; border-radius: 8px; border-color: rgba(190,208,239,.16); background: rgba(255,255,255,.055); transition: background-color .12s ease, border-color .12s ease; }
+        .alphabet-key:hover:not(:disabled) { transform: translateY(-1px); box-shadow: none; background: rgba(117,216,230,.18); }
+        .alphabet-key.vowel { border-color: rgba(117,216,230,.35); background: rgba(117,216,230,.09); color: #a7edf5; }
+        .player-hud { border-radius: 14px; background: rgba(17,24,42,.86); }
+        .player-hud.active { border-color: rgba(245,207,120,.65); box-shadow: inset 0 0 0 1px rgba(245,207,120,.12); transform: none; }
+        #wheel { filter: drop-shadow(0 7px 12px rgba(0,0,0,.35)); border-color: rgba(117,216,230,.3); }
+        #spin-hub-btn { border-color: #f5cf78; color: #f5cf78; box-shadow: 0 0 0 5px rgba(245,207,120,.07); }
+        #spin-hub-btn:hover:not(:disabled) { background: #f5cf78; color: #111827; box-shadow: 0 0 0 7px rgba(245,207,120,.1); }
+        .action-btn { border-radius: 10px; box-shadow: none; transition: transform .14s ease, filter .14s ease, background-color .14s ease; }
+        .action-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: none; filter: brightness(1.06); }
+        .action-btn.hint-btn { background: linear-gradient(135deg, #8fe3ed, #65c5d7); }
+        .modal-overlay { background: rgba(3,6,13,.86); backdrop-filter: none; }
+        .modal-content { border-color: rgba(117,216,230,.28); border-radius: 20px; background: linear-gradient(145deg, #151e31, #0d1423); }
+        .leaderboard-modal-box { border-width: 1px !important; border-color: rgba(245,207,120,.55) !important; box-shadow: 0 18px 55px rgba(0,0,0,.4) !important; }
+        .leaderboard-item-card { border-radius: 12px; }
+        .mines-grid-container { border-width: 1px; border-color: rgba(117,216,230,.25); border-radius: 16px; gap: 7px; }
+        .mines-tile { border-radius: 11px; transition: background-color .12s ease, border-color .12s ease; }
+        .mines-tile.safe, .mines-tile.mine { box-shadow: none !important; }
+        .luxor-ticket-container { border-color: rgba(117,216,230,.24); border-radius: 16px; }
+        .luxor-cell { transition: background-color .12s ease, border-color .12s ease; }
+        button, .casino-chip, .luxor-cell, .lotto-num-btn, .mines-tile { -webkit-tap-highlight-color: transparent; }
+        button:focus-visible, input:focus-visible, .casino-chip:focus-visible, .luxor-cell:focus-visible, .lotto-num-btn:focus-visible, .mines-tile:focus-visible {
+            outline: 2px solid #f5cf78; outline-offset: 3px;
+        }
+        #performance-btn[aria-pressed="true"] { border-color: rgba(99,214,164,.5); color: #b5f3d7; background: rgba(99,214,164,.09); }
+        body.performance-mode, body.performance-mode * { scroll-behavior: auto !important; }
+        body.performance-mode *, body.performance-mode *::before, body.performance-mode *::after {
+            animation-duration: .001ms !important; animation-iteration-count: 1 !important;
+            transition-duration: .001ms !important; scroll-behavior: auto !important;
+            backdrop-filter: none !important; filter: none !important;
+        }
+        body.performance-mode #wheel { filter: none !important; }
+        body.performance-mode .tile-inner { transition: none !important; }
+        @media (max-width: 820px) {
+            header { align-items: stretch; flex-wrap: wrap; }
+            .brand-top-left { flex: 1 1 auto; justify-content: center; }
+            #top-right-buttons { width: 100%; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; }
+            .top-btn { padding: 8px 5px; font-size: .68rem; }
+            #puzzle-count-live-badge { font-size: .72rem; }
+            #round-info-container { flex-wrap: wrap; gap: 4px 10px; }
+            #wheel-wrapper, #booster-container { max-width: min(210px, 62vw); }
+            #tv-container { padding: 6px; border-radius: 16px; }
+            #screen { min-height: 0; }
+            .lobby-card-box { gap: 10px; }
+        }
+        @media (max-width: 420px) {
+            body { padding: 6px; }
+            .brand-top-left { padding: 6px 9px; }
+            .brand-top-left svg { width: 27px; height: 27px; }
+            .brand-top-left-text { font-size: .9rem; }
+            #top-right-buttons { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            #player-namecard-card { padding: 8px; }
+            .namecard-right { gap: 6px; }
+            .namecard-stat-value { font-size: .88rem; }
+            .puzzle-row { gap: 3px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .001ms !important; }
+        }
+
     </style>
 </head>
 <body>
@@ -532,6 +688,7 @@
         <button class="top-btn" onclick="openSzerencseLottoModal()">🎰 LOTTÓ</button>
         <button class="top-btn" onclick="showLeaderboard()">🏆 TOPLISTA</button>
         <button class="top-btn" id="mute-btn" onclick="toggleMute()">🔊 Hang</button>
+        <button class="top-btn" id="performance-btn" onclick="togglePerformanceMode()" aria-pressed="false" title="Gyengébb eszközökre: csökkenti a vizuális effekteket">⚡ Kímélő mód</button>
     </div>
 </header>
 
@@ -1185,7 +1342,10 @@ function fetchGoogleSheetPuzzles() {
     document.body.appendChild(s);
 }
 
-setInterval(fetchGoogleSheetPuzzles, 30000);
+// Kíméletes frissítés: a feladványforrás változatlan, háttérben nem kérdezgetjük a táblázatot.
+setInterval(() => {
+    if (!document.hidden) fetchGoogleSheetPuzzles();
+}, 300000);
 
 async function loadCloudSeenPuzzles() {
     if (!myPlayerName) return;
@@ -1298,6 +1458,26 @@ function toggleMute() {
         btn.textContent = audioEnabled ? "🔊 Hang" : "🔇 Néma";
         btn.classList.toggle('mute', !audioEnabled);
     }
+}
+
+// A felhasználó választhat látványos vagy kímélő megjelenítést. A játék szabályait nem módosítja.
+function applyPerformanceMode(enabled) {
+    document.body.classList.toggle('performance-mode', !!enabled);
+    const btn = document.getElementById('performance-btn');
+    if (btn) {
+        btn.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+        btn.textContent = enabled ? '⚡ Kímélő: BE' : '⚡ Kímélő mód';
+    }
+}
+function togglePerformanceMode() {
+    const enabled = !document.body.classList.contains('performance-mode');
+    applyPerformanceMode(enabled);
+    try { localStorage.setItem('szerencsebajnok-performance-mode', enabled ? '1' : '0'); } catch (e) {}
+}
+try {
+    applyPerformanceMode(localStorage.getItem('szerencsebajnok-performance-mode') === '1');
+} catch (e) {
+    // Privát böngészésben vagy tiltott tárhelynél az alapértelmezett mód marad.
 }
 
 function showLobbyView() {
